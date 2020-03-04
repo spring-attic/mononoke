@@ -23,9 +23,7 @@ spec:
         control-plane: controller-manager
     spec:
       containers:
-      - command:
-        - /manager
-        args:
+      - args:
         - --enable-leader-election
         image: ko://github.com/spring-cloud-incubator/mononoke
         name: manager

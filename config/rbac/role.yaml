@@ -7,6 +7,18 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - apps.mononoke.local
   resources:
   - springbootapplications
@@ -26,3 +38,15 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

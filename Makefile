@@ -4,7 +4,7 @@ CRD_OPTIONS ?= "crd:trivialVersions=true"
 
 CONTROLLER_GEN=go run sigs.k8s.io/controller-tools/cmd/controller-gen
 
-all: manager
+all: manager manifests
 
 # Run tests
 test: generate fmt vet manifests
@@ -20,7 +20,9 @@ run: generate fmt vet manifests
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests:
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases crd:maxDescLen=100
+	@# cleanup duplicate resource generation
+	@rm -f config/apps.mononoke.*
 	kustomize build config/default > config/mononoke.yaml
 
 # Run go fmt against code

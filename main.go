@@ -19,7 +19,10 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
+	"github.com/projectriff/system/pkg/controllers"
+	"github.com/projectriff/system/pkg/tracker"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -27,13 +30,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	appsv1alpha1 "github.com/spring-cloud-incubator/mononoke/api/v1alpha1"
-	"github.com/spring-cloud-incubator/mononoke/controllers"
+	mononokecontrollers "github.com/spring-cloud-incubator/mononoke/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme     = runtime.NewScheme()
+	setupLog   = ctrl.Log.WithName("setup")
+	syncPeriod = 10 * time.Hour
 )
 
 func init() {
@@ -60,17 +64,23 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "0f27de86.mononoke.local",
+		SyncPeriod:         &syncPeriod,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	if err = (&controllers.SpringBootApplicationReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("SpringBootApplication"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	if err = mononokecontrollers.SpringBootApplicationReconciler(
+		controllers.Config{
+			Client:    mgr.GetClient(),
+			APIReader: mgr.GetAPIReader(),
+			Recorder:  mgr.GetEventRecorderFor("SpringBootApplication"),
+			Tracker:   tracker.New(syncPeriod, ctrl.Log.WithName("controllers").WithName("Deployer").WithName("tracker")),
+			Log:       ctrl.Log.WithName("controllers").WithName("SpringBootApplication"),
+			Scheme:    mgr.GetScheme(),
+		},
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "SpringBootApplication")
 		os.Exit(1)
 	}
