@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,8 +29,9 @@ type SpringBootApplicationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of SpringBootApplication. Edit SpringBootApplication_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Template pod
+	// +optional
+	Template *corev1.PodTemplateSpec `json:"template,omitempty"`
 }
 
 // SpringBootApplicationStatus defines the observed state of SpringBootApplication
