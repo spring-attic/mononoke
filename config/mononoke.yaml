@@ -13,6 +13,16 @@ metadata:
   creationTimestamp: null
   name: springbootapplications.apps.mononoke.local
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.conditions[?(@.type=="Ready")].status
+    name: Ready
+    type: string
+  - JSONPath: .status.conditions[?(@.type=="Ready")].reason
+    name: Reason
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: apps.mononoke.local
   names:
     kind: SpringBootApplication
@@ -20,6 +30,8 @@ spec:
     plural: springbootapplications
     singular: springbootapplication
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: SpringBootApplication is the Schema for the springbootapplications
@@ -4496,6 +4508,45 @@ spec:
           type: object
         status:
           description: SpringBootApplicationStatus defines the observed state of SpringBootApplication
+          properties:
+            conditions:
+              description: Conditions the latest available observations of a resource's
+                current state.
+              items:
+                description: 'Conditions defines a readiness condition for a Knative
+                  resource. See: https://github.'
+                properties:
+                  lastTransitionTime:
+                    description: LastTransitionTime is the last time the condition
+                      transitioned from one status to another.
+                    type: string
+                  message:
+                    description: A human readable message indicating details about
+                      the transition.
+                    type: string
+                  reason:
+                    description: The reason for the condition's last transition.
+                    type: string
+                  severity:
+                    description: Severity with which to treat failures of this type
+                      of condition.
+                    type: string
+                  status:
+                    description: Status of the condition, one of True, False, Unknown.
+                    type: string
+                  type:
+                    description: Type of condition.
+                    type: string
+                required:
+                - status
+                - type
+                type: object
+              type: array
+            observedGeneration:
+              description: ObservedGeneration is the 'Generation' of the Service that
+                was last processed by the controller.
+              format: int64
+              type: integer
           type: object
       type: object
   version: v1alpha1
@@ -4550,6 +4601,18 @@ metadata:
   name: mononoke-manager-role
 rules:
 - apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - apps.mononoke.local
   resources:
   - springbootapplications
@@ -4569,6 +4632,18 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -4684,8 +4759,6 @@ spec:
       - args:
         - --metrics-addr=127.0.0.1:8080
         - --enable-leader-election
-        command:
-        - /manager
         image: ko://github.com/spring-cloud-incubator/mononoke
         name: manager
         resources:

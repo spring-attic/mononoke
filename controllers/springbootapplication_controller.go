@@ -19,35 +19,126 @@ package controllers
 import (
 	"context"
 
-	"github.com/go-logr/logr"
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	appsv1alpha1 "github.com/spring-cloud-incubator/mononoke/api/v1alpha1"
+	"github.com/projectriff/system/pkg/controllers"
+	mononokev1alpha1 "github.com/spring-cloud-incubator/mononoke/api/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-// SpringBootApplicationReconciler reconciles a SpringBootApplication object
-type SpringBootApplicationReconciler struct {
-	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
-}
 
 // +kubebuilder:rbac:groups=apps.mononoke.local,resources=springbootapplications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps.mononoke.local,resources=springbootapplications/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch;delete
 
-func (r *SpringBootApplicationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("springbootapplication", req.NamespacedName)
+func SpringBootApplicationReconciler(c controllers.Config) *controllers.ParentReconciler {
+	c.Log = c.Log.WithName("SpringBootApplication")
 
-	// your logic here
+	return &controllers.ParentReconciler{
+		Type: &mononokev1alpha1.SpringBootApplication{},
+		SubReconcilers: []controllers.SubReconciler{
+			SpringBootApplicationResolveImageMetadata(c),
+			SpringBootApplicationApplyOpinions(c),
+			SpringBootApplicationChildDeploymentReconciler(c),
+		},
 
-	return ctrl.Result{}, nil
+		Config: c,
+	}
 }
 
-func (r *SpringBootApplicationReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&appsv1alpha1.SpringBootApplication{}).
-		Complete(r)
+func SpringBootApplicationResolveImageMetadata(c controllers.Config) controllers.SubReconciler {
+	c.Log = c.Log.WithName("ResolveImageMetadata")
+
+	return &controllers.SyncReconciler{
+		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
+			// TODO(scothis) resolve image with build metadata
+
+			return nil
+		},
+
+		Config: c,
+	}
+}
+
+func SpringBootApplicationApplyOpinions(c controllers.Config) controllers.SubReconciler {
+	c.Log = c.Log.WithName("ApplyOpinions")
+
+	return &controllers.SyncReconciler{
+		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
+			// TODO(scothis) apply opinions about boot apps
+
+			return nil
+		},
+
+		Config: c,
+	}
+}
+
+func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) controllers.SubReconciler {
+	c.Log = c.Log.WithName("ChildDeployment")
+
+	return &controllers.ChildReconciler{
+		ParentType:    &mononokev1alpha1.SpringBootApplication{},
+		ChildType:     &appsv1.Deployment{},
+		ChildListType: &appsv1.DeploymentList{},
+
+		DesiredChild: func(parent *mononokev1alpha1.SpringBootApplication) (*appsv1.Deployment, error) {
+			labels := controllers.MergeMaps(parent.Labels, map[string]string{
+				mononokev1alpha1.SpringBootApplicationLabelKey: parent.Name,
+			})
+
+			template := *parent.Spec.Template.DeepCopy()
+			template.Labels = controllers.MergeMaps(template.Labels, labels)
+
+			child := &appsv1.Deployment{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels:      labels,
+					Annotations: make(map[string]string),
+					Name:        parent.Name,
+					Namespace:   parent.Namespace,
+				},
+				Spec: appsv1.DeploymentSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							mononokev1alpha1.SpringBootApplicationLabelKey: parent.Name,
+						},
+					},
+					Template: template,
+				},
+			}
+
+			return child, nil
+		},
+		ReflectChildStatusOnParent: func(parent *mononokev1alpha1.SpringBootApplication, child *appsv1.Deployment, err error) {
+			if err != nil {
+				if apierrs.IsAlreadyExists(err) {
+					name := err.(apierrs.APIStatus).Status().Details.Name
+					parent.Status.MarkDeploymentNotOwned(name)
+				}
+				return
+			}
+			if child != nil {
+				parent.Status.PropagateDeploymentStatus(&child.Status)
+			}
+		},
+		HarmonizeImmutableFields: func(current, desired *appsv1.Deployment) {
+			// don't fight with an autoscaler
+			desired.Spec.Replicas = current.Spec.Replicas
+		},
+		MergeBeforeUpdate: func(current, desired *appsv1.Deployment) {
+			current.Labels = desired.Labels
+			current.Spec = desired.Spec
+		},
+		SemanticEquals: func(a1, a2 *appsv1.Deployment) bool {
+			return equality.Semantic.DeepEqual(a1.Spec, a2.Spec) &&
+				equality.Semantic.DeepEqual(a1.Labels, a2.Labels)
+		},
+
+		Config:     c,
+		IndexField: ".metadata.deploymentController",
+		Sanitize: func(child *appsv1.Deployment) interface{} {
+			return child.Spec
+		},
+	}
 }

@@ -17,8 +17,13 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/projectriff/system/pkg/apis"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+var (
+	SpringBootApplicationLabelKey = GroupVersion.Group + "/spring-boot-application"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -38,9 +43,15 @@ type SpringBootApplicationSpec struct {
 type SpringBootApplicationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	apis.Status `json:",inline"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Ready",type=string,JSONPath=`.status.conditions[?(@.type=="Ready")].status`
+// +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.conditions[?(@.type=="Ready")].reason`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
 // SpringBootApplication is the Schema for the springbootapplications API
 type SpringBootApplication struct {
@@ -49,6 +60,10 @@ type SpringBootApplication struct {
 
 	Spec   SpringBootApplicationSpec   `json:"spec,omitempty"`
 	Status SpringBootApplicationStatus `json:"status,omitempty"`
+}
+
+func (a *SpringBootApplication) GetStatus() apis.ResourceStatus {
+	return &a.Status
 }
 
 // +kubebuilder:object:root=true
