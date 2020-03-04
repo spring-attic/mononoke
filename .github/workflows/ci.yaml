@@ -32,6 +32,9 @@ jobs:
         export PATH=$PATH:/usr/local/kubebuilder/bin
 
         echo "##[add-path]/usr/local/kubebuilder/bin"
+    - name: Install kustomize
+      run: |
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && sudo mv kustomize /usr/local/bin
     - name: Build & Test
       run: make manager test
     - name: Check generated code is up to date
