@@ -1,3 +1,7 @@
 domain: mononoke.local
 repo: github.com/spring-cloud-incubator/mononoke
+resources:
+- group: apps
+  kind: SpringBootApplication
+  version: v1alpha1
 version: "2"

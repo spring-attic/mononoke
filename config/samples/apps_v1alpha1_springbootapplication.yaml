@@ -1,0 +1,7 @@
+apiVersion: apps.mononoke.local/v1alpha1
+kind: SpringBootApplication
+metadata:
+  name: springbootapplication-sample
+spec:
+  # Add fields here
+  foo: bar
