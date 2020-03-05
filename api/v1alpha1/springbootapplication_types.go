@@ -41,6 +41,10 @@ type SpringBootApplicationSpec struct {
 	// Template pod
 	// +optional
 	Template *corev1.PodTemplateSpec `json:"template,omitempty"`
+
+	// ApplicationProperties to be included in the target application container
+	// +optional
+	ApplicationProperties map[string]string `json:"applicationProperties,omitempty"`
 }
 
 // SpringBootApplicationStatus defines the observed state of SpringBootApplication
@@ -53,6 +57,13 @@ type SpringBootApplicationStatus struct {
 	// LatestImage is the image being deployed
 	// +optional
 	LatestImage string `json:"latestImage"`
+
+	// AppliedOpinions lists opinions applied to the application
+	AppliedOpinions []string `json:"appliedOpinions,omitempty"`
+
+	// ApplicationPropertiesRef is the ConfigMap holding the application properties
+	// +optional
+	ApplicationPropertiesRef *corev1.LocalObjectReference `json:"applicationPropertiesRef,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -14,31 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package opinions
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
-var _ webhook.Defaulter = &SpringBootApplication{}
-
-func (r *SpringBootApplication) Default() {
-	r.Spec.Default()
-}
-
-func (s *SpringBootApplicationSpec) Default() {
-	if s.Template == nil {
-		s.Template = &corev1.PodTemplateSpec{}
+func ApplicationContainer(podSpec *corev1.PodTemplateSpec) *corev1.Container {
+	// look for existing container named application
+	for _, c := range podSpec.Spec.Containers {
+		if c.Name == "application" {
+			return &c
+		}
 	}
-	if len(s.Template.Spec.Containers) == 0 {
-		s.Template.Spec.Containers = []corev1.Container{{}}
+	// add new container
+	c := corev1.Container{
+		Name: "application",
 	}
-	if s.Template.Spec.Containers[0].Name == "" {
-		s.Template.Spec.Containers[0].Name = "application"
-	}
-
-	if s.ApplicationProperties == nil {
-		s.ApplicationProperties = map[string]string{}
-	}
+	podSpec.Spec.Containers = append(podSpec.Spec.Containers, c)
+	return &c
 }

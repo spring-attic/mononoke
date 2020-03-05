@@ -24,7 +24,9 @@ import (
 	"github.com/projectriff/system/pkg/controllers"
 	"github.com/projectriff/system/pkg/tracker"
 	mononokev1alpha1 "github.com/spring-cloud-incubator/mononoke/api/v1alpha1"
+	"github.com/spring-cloud-incubator/mononoke/opinions"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,6 +50,7 @@ func SpringBootApplicationReconciler(c controllers.Config) *controllers.ParentRe
 			SpringBootApplicationResolveLatestImage(c),
 			SpringBootApplicationResolveImageMetadata(c),
 			SpringBootApplicationApplyOpinions(c),
+			SpringBootApplicationChildApplicationPropertiesReconciler(c),
 			SpringBootApplicationChildDeploymentReconciler(c),
 		},
 
@@ -119,12 +122,78 @@ func SpringBootApplicationApplyOpinions(c controllers.Config) controllers.SubRec
 
 	return &controllers.SyncReconciler{
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
-			// TODO(scothis) apply opinions about boot apps
+			ctx = opinions.StashSpringApplicationProperties(ctx, parent.Spec.ApplicationProperties)
+			// TODO get image build metadata
+			imageMetadata := map[string]string{}
+			applied, err := opinions.SpringBoot.Apply(ctx, parent.Spec.Template, imageMetadata)
+			if err != nil {
+				return err
+			}
+			parent.Status.AppliedOpinions = applied
 
 			return nil
 		},
 
 		Config: c,
+	}
+}
+
+func SpringBootApplicationChildApplicationPropertiesReconciler(c controllers.Config) controllers.SubReconciler {
+	c.Log = c.Log.WithName("ChildApplicationProperties")
+
+	return &controllers.ChildReconciler{
+		ParentType:    &mononokev1alpha1.SpringBootApplication{},
+		ChildType:     &corev1.ConfigMap{},
+		ChildListType: &corev1.ConfigMapList{},
+
+		DesiredChild: func(parent *mononokev1alpha1.SpringBootApplication) (*corev1.ConfigMap, error) {
+			if len(parent.Spec.ApplicationProperties) == 0 {
+				return nil, nil
+			}
+
+			labels := controllers.MergeMaps(parent.Labels, map[string]string{
+				mononokev1alpha1.SpringBootApplicationLabelKey: parent.Name,
+			})
+
+			child := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels:       labels,
+					Annotations:  make(map[string]string),
+					GenerateName: fmt.Sprintf("%s-application-properties-", parent.Name),
+					Namespace:    parent.Namespace,
+				},
+				// TODO(scothis) convert into single key properties file
+				Data: parent.Spec.ApplicationProperties,
+			}
+
+			return child, nil
+		},
+		ReflectChildStatusOnParent: func(parent *mononokev1alpha1.SpringBootApplication, child *corev1.ConfigMap, err error) {
+			if err != nil {
+				return
+			}
+			if child != nil {
+				parent.Status.ApplicationPropertiesRef = &corev1.LocalObjectReference{
+					Name: child.Name,
+				}
+			} else {
+				parent.Status.ApplicationPropertiesRef = nil
+			}
+		},
+		MergeBeforeUpdate: func(current, desired *corev1.ConfigMap) {
+			current.Labels = desired.Labels
+			current.Data = desired.Data
+		},
+		SemanticEquals: func(a1, a2 *corev1.ConfigMap) bool {
+			return equality.Semantic.DeepEqual(a1.Data, a2.Data) &&
+				equality.Semantic.DeepEqual(a1.Labels, a2.Labels)
+		},
+
+		Config:     c,
+		IndexField: ".metadata.applicationPropertiesController",
+		Sanitize: func(child *corev1.ConfigMap) interface{} {
+			return child.Data
+		},
 	}
 }
 
@@ -163,6 +232,8 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 					Template: template,
 				},
 			}
+
+			// TODO(scothis) inject applicationProperties config map
 
 			return child, nil
 		},
