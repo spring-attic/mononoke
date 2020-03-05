@@ -34,6 +34,10 @@ type SpringBootApplicationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
+	// ImageRef references a resources that exposes a latest image
+	// +optional
+	ImageRef *corev1.ObjectReference `json:"imageRef,omitempty"`
+
 	// Template pod
 	// +optional
 	Template *corev1.PodTemplateSpec `json:"template,omitempty"`
@@ -45,6 +49,10 @@ type SpringBootApplicationStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	apis.Status `json:",inline"`
+
+	// LatestImage is the image being deployed
+	// +optional
+	LatestImage string `json:"latestImage"`
 }
 
 // +kubebuilder:object:root=true

@@ -45,6 +45,33 @@ spec:
         spec:
           description: SpringBootApplicationSpec defines the desired state of SpringBootApplication
           properties:
+            imageRef:
+              description: ImageRef references a resources that exposes a latest image
+              properties:
+                apiVersion:
+                  description: API version of the referent.
+                  type: string
+                fieldPath:
+                  description: If referring to a piece of an object instead of an
+                    entire object, this string should contain a valid
+                  type: string
+                kind:
+                  description: 'Kind of the referent. More info: https://git.k8s.'
+                  type: string
+                name:
+                  description: 'Name of the referent. More info: https://kubernetes.'
+                  type: string
+                namespace:
+                  description: 'Namespace of the referent. More info: https://kubernetes.'
+                  type: string
+                resourceVersion:
+                  description: 'Specific resourceVersion to which this reference is
+                    made, if any. More info: https://git.k8s.'
+                  type: string
+                uid:
+                  description: 'UID of the referent. More info: https://kubernetes.'
+                  type: string
+              type: object
             template:
               description: Template pod
               properties:
@@ -4537,6 +4564,9 @@ spec:
                 - type
                 type: object
               type: array
+            latestImage:
+              description: LatestImage is the image being deployed
+              type: string
             observedGeneration:
               description: ObservedGeneration is the 'Generation' of the Service that
                 was last processed by the controller.

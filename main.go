@@ -29,6 +29,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	kpackbuildv1alpha1 "github.com/projectriff/system/pkg/apis/thirdparty/kpack/build/v1alpha1"
 	appsv1alpha1 "github.com/spring-cloud-incubator/mononoke/api/v1alpha1"
 	mononokecontrollers "github.com/spring-cloud-incubator/mononoke/controllers"
 	// +kubebuilder:scaffold:imports
@@ -44,6 +45,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = appsv1alpha1.AddToScheme(scheme)
+	_ = kpackbuildv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
