@@ -9,28 +9,28 @@ import (
 const buildMetadataLabel = "io.buildpacks.build.metadata"
 
 type BuildMetadata struct {
-	Processes  []Process   `toml:"processes" json:"processes"`
-	Buildpacks []Buildpack `toml:"buildpacks" json:"buildpacks"`
-	BOM        []BOMEntry  `toml:"bom" json:"bom"`
+	Processes  []Process   `json:"processes"`
+	Buildpacks []Buildpack `json:"buildpacks"`
+	BOM        []BOMEntry  `json:"bom"`
 }
 
 type Buildpack struct {
-	ID      string `toml:"id" json:"id"`
-	Version string `toml:"version" json:"version"`
+	ID      string `json:"id"`
+	Version string `json:"version"`
 }
 
 type BOMEntry struct {
-	Name      string                 `toml:"name" json:"name"`
-	Version   string                 `toml:"version" json:"version"`
-	Metadata  map[string]interface{} `toml:"metadata" json:"metadata"`
+	Name      string                 `json:"name"`
+	Version   string                 `json:"version"`
+	Metadata  map[string]interface{} `json:"metadata"`
 	Buildpack Buildpack
 }
 
 type Process struct {
-	Type    string   `toml:"type" json:"type"`
-	Command string   `toml:"command" json:"command"`
-	Args    []string `toml:"args" json:"args"`
-	Direct  bool     `toml:"direct" json:"direct"`
+	Type    string   `json:"type"`
+	Command string   `json:"command"`
+	Args    []string `json:"args"`
+	Direct  bool     `json:"direct"`
 }
 
 func ParseBuildMetadata(img v1.Image) (BuildMetadata, error) {
