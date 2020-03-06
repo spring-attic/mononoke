@@ -49,7 +49,7 @@ var SpringBoot = Opinions{
 		Id: "spring-boot-actuator-probes",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			// TODO apply if the metadata indicates a spring-boot-actuator is installed
-			return true
+			return false
 		},
 		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
