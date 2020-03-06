@@ -22,20 +22,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-type springApplicationPropertiesKey struct{}
-
-func StashSpringApplicationProperties(ctx context.Context, props map[string]string) context.Context {
-	return context.WithValue(ctx, springApplicationPropertiesKey{}, props)
-}
-
-func SpringApplicationProperties(ctx context.Context) map[string]string {
-	value := ctx.Value(springApplicationPropertiesKey{})
-	if props, ok := value.(map[string]string); ok {
-		return props
-	}
-	return nil
-}
-
 var SpringBoot = Opinions{
 	{
 		Id: "spring-web-port",
@@ -45,8 +31,9 @@ var SpringBoot = Opinions{
 		},
 		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata map[string]string) error {
 			applicationProperties := SpringApplicationProperties(ctx)
+			// TODO be smarter about resolving the correct container
+			c := &podSpec.Spec.Containers[0]
 			// TODO check for an existing port before clobbering
-			c := ApplicationContainer(podSpec)
 			c.Ports = append(c.Ports, corev1.ContainerPort{
 				ContainerPort: 8080,
 				Protocol:      corev1.ProtocolTCP,
@@ -69,4 +56,18 @@ var SpringBoot = Opinions{
 		},
 	},
 	// TODO add a whole lot more opinions
+}
+
+type springApplicationPropertiesKey struct{}
+
+func StashSpringApplicationProperties(ctx context.Context, props map[string]string) context.Context {
+	return context.WithValue(ctx, springApplicationPropertiesKey{}, props)
+}
+
+func SpringApplicationProperties(ctx context.Context) map[string]string {
+	value := ctx.Value(springApplicationPropertiesKey{})
+	if props, ok := value.(map[string]string); ok {
+		return props
+	}
+	return nil
 }

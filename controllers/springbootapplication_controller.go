@@ -227,8 +227,35 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 
 			template := *parent.Spec.Template.DeepCopy()
 			template.Labels = controllers.MergeMaps(template.Labels, labels)
+
+			applicationContainer := &template.Spec.Containers[0]
+
 			if parent.Status.LatestImage != "" {
-				template.Spec.Containers[0].Image = parent.Status.LatestImage
+				applicationContainer.Image = parent.Status.LatestImage
+			}
+
+			// inject custom application properties
+			if parent.Status.ApplicationPropertiesRef != nil {
+				template.Spec.Volumes = append(template.Spec.Volumes, corev1.Volume{
+					// TODO(scothis) check for collisions
+					Name: "mononoke-properties",
+					VolumeSource: corev1.VolumeSource{
+						ConfigMap: &corev1.ConfigMapVolumeSource{
+							LocalObjectReference: *parent.Status.ApplicationPropertiesRef,
+						},
+					},
+				})
+				applicationContainer.VolumeMounts = append(applicationContainer.VolumeMounts, corev1.VolumeMount{
+					Name:      "mononoke-properties",
+					MountPath: "/workspace/application-mononoke.properties",
+					SubPath:   "application.properties",
+					ReadOnly:  true,
+				})
+				// TODO(scothis) check for existing var
+				applicationContainer.Env = append(applicationContainer.Env, corev1.EnvVar{
+					Name:  "JAVA_OPTS",
+					Value: "-Dspring.main.additional-profiles=mononoke",
+				})
 			}
 
 			child := &appsv1.Deployment{
