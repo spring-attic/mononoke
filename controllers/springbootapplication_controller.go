@@ -275,8 +275,6 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 				},
 			}
 
-			// TODO(scothis) inject applicationProperties config map
-
 			return child, nil
 		},
 		ReflectChildStatusOnParent: func(parent *mononokev1alpha1.SpringBootApplication, child *appsv1.Deployment, err error) {
