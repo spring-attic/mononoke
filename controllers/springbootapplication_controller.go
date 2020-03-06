@@ -40,6 +40,7 @@ import (
 // +kubebuilder:rbac:groups=apps.mononoke.local,resources=springbootapplications/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=build.pivotal.io,resources=images,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch;delete
 
 func SpringBootApplicationReconciler(c controllers.Config) *controllers.ParentReconciler {
