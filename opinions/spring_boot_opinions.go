@@ -19,17 +19,18 @@ package opinions
 import (
 	"context"
 
+	"github.com/spring-cloud-incubator/mononoke/cnb"
 	corev1 "k8s.io/api/core/v1"
 )
 
 var SpringBoot = Opinions{
 	{
 		Id: "spring-web-port",
-		Applicable: func(applied AppliedOpinions, imageMetadata map[string]string) bool {
+		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			// TODO apply if the metadata indicates a webapp
 			return true
 		},
-		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata map[string]string) error {
+		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 			// TODO be smarter about resolving the correct container
 			c := &podSpec.Spec.Containers[0]
@@ -44,11 +45,11 @@ var SpringBoot = Opinions{
 	},
 	{
 		Id: "spring-boot-actuator-port",
-		Applicable: func(applied AppliedOpinions, imageMetadata map[string]string) bool {
+		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			// TODO apply if the metadata indicates a spring-boot-actuator is installed
 			return true
 		},
-		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata map[string]string) error {
+		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 			// TODO check for an existing port before clobbering
 			applicationProperties["management.server.port"] = "8081"

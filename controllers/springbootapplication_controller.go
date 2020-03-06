@@ -25,6 +25,7 @@ import (
 	"github.com/projectriff/system/pkg/controllers"
 	"github.com/projectriff/system/pkg/tracker"
 	mononokev1alpha1 "github.com/spring-cloud-incubator/mononoke/api/v1alpha1"
+	"github.com/spring-cloud-incubator/mononoke/cnb"
 	"github.com/spring-cloud-incubator/mononoke/opinions"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -43,14 +44,16 @@ import (
 // +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch;delete
 
-func SpringBootApplicationReconciler(c controllers.Config) *controllers.ParentReconciler {
+const ImageMetadataStashKey controllers.StashKey = "image-metadata"
+
+func SpringBootApplicationReconciler(c controllers.Config, registry cnb.Registry) *controllers.ParentReconciler {
 	c.Log = c.Log.WithName("SpringBootApplication")
 
 	return &controllers.ParentReconciler{
 		Type: &mononokev1alpha1.SpringBootApplication{},
 		SubReconcilers: []controllers.SubReconciler{
 			SpringBootApplicationResolveLatestImage(c),
-			SpringBootApplicationResolveImageMetadata(c),
+			SpringBootApplicationResolveImageMetadata(c, registry),
 			SpringBootApplicationApplyOpinions(c),
 			SpringBootApplicationChildApplicationPropertiesReconciler(c),
 			SpringBootApplicationChildDeploymentReconciler(c),
@@ -105,13 +108,20 @@ func SpringBootApplicationResolveLatestImage(c controllers.Config) controllers.S
 	}
 }
 
-func SpringBootApplicationResolveImageMetadata(c controllers.Config) controllers.SubReconciler {
+func SpringBootApplicationResolveImageMetadata(c controllers.Config, registry cnb.Registry) controllers.SubReconciler {
 	c.Log = c.Log.WithName("ResolveImageMetadata")
-
 	return &controllers.SyncReconciler{
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
-			// TODO(scothis) resolve image with build metadata
-
+			ref := parent.Status.LatestImage
+			img, err := registry.GetImage(parent.Status.LatestImage)
+			if err != nil {
+				return fmt.Errorf("failed to get image %s from registry: %w", ref, err)
+			}
+			md, err := cnb.ParseBuildMetadata(img)
+			if err != nil {
+				return fmt.Errorf("failed parse cnb metadata from image %s: %w", ref, err)
+			}
+			controllers.StashValue(ctx, ImageMetadataStashKey, md)
 			return nil
 		},
 
@@ -125,8 +135,7 @@ func SpringBootApplicationApplyOpinions(c controllers.Config) controllers.SubRec
 	return &controllers.SyncReconciler{
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
 			ctx = opinions.StashSpringApplicationProperties(ctx, parent.Spec.ApplicationProperties)
-			// TODO get image build metadata
-			imageMetadata := map[string]string{}
+			imageMetadata := controllers.RetrieveValue(ctx, ImageMetadataStashKey).(cnb.BuildMetadata)
 			applied, err := opinions.SpringBoot.Apply(ctx, parent.Spec.Template, imageMetadata)
 			if err != nil {
 				return err

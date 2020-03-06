@@ -21,8 +21,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/projectriff/system/pkg/controllers"
 	"github.com/projectriff/system/pkg/tracker"
+	"github.com/spring-cloud-incubator/mononoke/cnb"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -82,6 +84,7 @@ func main() {
 			Log:       ctrl.Log.WithName("controllers").WithName("SpringBootApplication"),
 			Scheme:    mgr.GetScheme(),
 		},
+		cnb.Registry{Keychain: authn.DefaultKeychain}, //todo: keychain w/ configured secrets
 	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "SpringBootApplication")
 		os.Exit(1)
