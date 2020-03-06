@@ -25,7 +25,7 @@ import (
 var SpringBoot = Opinions{
 	{
 		Id: "spring-web-port",
-		Applicable: func(imageMetadata map[string]string) bool {
+		Applicable: func(applied AppliedOpinions, imageMetadata map[string]string) bool {
 			// TODO apply if the metadata indicates a webapp
 			return true
 		},
@@ -44,7 +44,7 @@ var SpringBoot = Opinions{
 	},
 	{
 		Id: "spring-boot-actuator-port",
-		Applicable: func(imageMetadata map[string]string) bool {
+		Applicable: func(applied AppliedOpinions, imageMetadata map[string]string) bool {
 			// TODO apply if the metadata indicates a spring-boot-actuator is installed
 			return true
 		},

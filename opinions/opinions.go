@@ -24,16 +24,16 @@ import (
 
 type Opinion struct {
 	Id         string
-	Applicable func(imageMetadata map[string]string) bool
+	Applicable func(applied AppliedOpinions, imageMetadata map[string]string) bool
 	Apply      func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata map[string]string) error
 }
 
 type Opinions []Opinion
 
 func (os Opinions) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata map[string]string) ([]string, error) {
-	applied := []string{}
+	applied := AppliedOpinions{}
 	for _, o := range os {
-		if o.Applicable == nil || o.Applicable(imageMetadata) {
+		if o.Applicable == nil || o.Applicable(applied, imageMetadata) {
 			applied = append(applied, o.Id)
 			if err := o.Apply(ctx, podSpec, imageMetadata); err != nil {
 				return nil, err
@@ -41,4 +41,15 @@ func (os Opinions) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, i
 		}
 	}
 	return applied, nil
+}
+
+type AppliedOpinions []string
+
+func (os AppliedOpinions) Has(id string) bool {
+	for _, o := range os {
+		if o == id {
+			return true
+		}
+	}
+	return false
 }
