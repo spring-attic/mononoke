@@ -45,6 +45,12 @@ spec:
         spec:
           description: SpringBootApplicationSpec defines the desired state of SpringBootApplication
           properties:
+            applicationProperties:
+              additionalProperties:
+                type: string
+              description: ApplicationProperties to be included in the target application
+                container
+              type: object
             imageRef:
               description: ImageRef references a resources that exposes a latest image
               properties:
@@ -4531,6 +4537,19 @@ spec:
         status:
           description: SpringBootApplicationStatus defines the observed state of SpringBootApplication
           properties:
+            applicationPropertiesRef:
+              description: ApplicationPropertiesRef is the ConfigMap holding the application
+                properties
+              properties:
+                name:
+                  description: 'Name of the referent. More info: https://kubernetes.'
+                  type: string
+              type: object
+            appliedOpinions:
+              description: AppliedOpinions lists opinions applied to the application
+              items:
+                type: string
+              type: array
             conditions:
               description: Conditions the latest available observations of a resource's
                 current state.

@@ -37,4 +37,8 @@ func (s *SpringBootApplicationSpec) Default() {
 	if s.Template.Spec.Containers[0].Name == "" {
 		s.Template.Spec.Containers[0].Name = "application"
 	}
+
+	if s.ApplicationProperties == nil {
+		s.ApplicationProperties = map[string]string{}
+	}
 }
