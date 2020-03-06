@@ -19,18 +19,19 @@ package opinions
 import (
 	"context"
 
+	"github.com/spring-cloud-incubator/mononoke/cnb"
 	corev1 "k8s.io/api/core/v1"
 )
 
 type Opinion struct {
 	Id         string
-	Applicable func(applied AppliedOpinions, imageMetadata map[string]string) bool
-	Apply      func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata map[string]string) error
+	Applicable func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool
+	Apply      func(ctx context.Context, podSpec *corev1.PodTemplateSpec, metadata cnb.BuildMetadata) error
 }
 
 type Opinions []Opinion
 
-func (os Opinions) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata map[string]string) ([]string, error) {
+func (os Opinions) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) ([]string, error) {
 	applied := AppliedOpinions{}
 	for _, o := range os {
 		if o.Applicable == nil || o.Applicable(applied, imageMetadata) {
