@@ -67,11 +67,11 @@ var SpringBoot = Opinions{
 			c := &podSpec.Spec.Containers[0]
 
 			// define probes
-			if c.StartupProbe != nil {
+			if c.StartupProbe == nil {
 				// requires k8s 1.16+
 				// TODO(scothis) add if k8s can handle it
 			}
-			if c.LivenessProbe != nil {
+			if c.LivenessProbe == nil {
 				c.LivenessProbe = &corev1.Probe{
 					InitialDelaySeconds: 30,
 					PeriodSeconds:       5,
@@ -87,7 +87,7 @@ var SpringBoot = Opinions{
 					},
 				}
 			}
-			if c.ReadinessProbe != nil {
+			if c.ReadinessProbe == nil {
 				c.ReadinessProbe = &corev1.Probe{
 					InitialDelaySeconds: 5,
 					PeriodSeconds:       1,
@@ -111,7 +111,7 @@ var SpringBoot = Opinions{
 		// fallback if spring-boot-actuator-probes is not applied
 		Id: "spring-boot-probes",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
-			return !applied.Has("spring-boot-actuator-probes")
+			return !applied.Has("spring-boot-actuator-probes") && applied.Has("spring-web-port")
 		},
 		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
@@ -130,11 +130,11 @@ var SpringBoot = Opinions{
 			c := &podSpec.Spec.Containers[0]
 
 			// define probes
-			if c.StartupProbe != nil {
+			if c.StartupProbe == nil {
 				// requires k8s 1.16+
 				// TODO(scothis) add if k8s can handle it
 			}
-			if c.LivenessProbe != nil {
+			if c.LivenessProbe == nil {
 				c.LivenessProbe = &corev1.Probe{
 					InitialDelaySeconds: 30,
 					PeriodSeconds:       5,
@@ -148,7 +148,7 @@ var SpringBoot = Opinions{
 					},
 				}
 			}
-			if c.ReadinessProbe != nil {
+			if c.ReadinessProbe == nil {
 				c.ReadinessProbe = &corev1.Probe{
 					InitialDelaySeconds: 5,
 					PeriodSeconds:       1,
