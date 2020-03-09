@@ -56,33 +56,6 @@ spec:
               description: ApplicationProperties to be included in the target application
                 container
               type: object
-            imageRef:
-              description: ImageRef references a resources that exposes a latest image
-              properties:
-                apiVersion:
-                  description: API version of the referent.
-                  type: string
-                fieldPath:
-                  description: If referring to a piece of an object instead of an
-                    entire object, this string should contain a valid
-                  type: string
-                kind:
-                  description: 'Kind of the referent. More info: https://git.k8s.'
-                  type: string
-                name:
-                  description: 'Name of the referent. More info: https://kubernetes.'
-                  type: string
-                namespace:
-                  description: 'Namespace of the referent. More info: https://kubernetes.'
-                  type: string
-                resourceVersion:
-                  description: 'Specific resourceVersion to which this reference is
-                    made, if any. More info: https://git.k8s.'
-                  type: string
-                uid:
-                  description: 'UID of the referent. More info: https://kubernetes.'
-                  type: string
-              type: object
             template:
               description: Template pod
               properties:
@@ -4681,14 +4654,6 @@ rules:
   - get
   - patch
   - update
-- apiGroups:
-  - build.pivotal.io
-  resources:
-  - images
-  verbs:
-  - get
-  - list
-  - watch
 - apiGroups:
   - ""
   resources:

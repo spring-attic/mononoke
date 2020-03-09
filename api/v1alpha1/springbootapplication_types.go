@@ -34,10 +34,6 @@ type SpringBootApplicationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// ImageRef references a resources that exposes a latest image
-	// +optional
-	ImageRef *corev1.ObjectReference `json:"imageRef,omitempty"`
-
 	// Template pod
 	// +optional
 	Template *corev1.PodTemplateSpec `json:"template,omitempty"`
