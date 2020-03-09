@@ -55,13 +55,17 @@ var SpringBoot = Opinions{
 		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 
-			// TODO check for an existing values before clobbering
+			// TODO check for an existing value before clobbering
 			managementPort := 9001
 
 			applicationProperties["management.server.port"] = strconv.Itoa(managementPort)
 			applicationProperties["management.server.ssl.enabled"] = "false"
 			applicationProperties["management.endpoint.health.enabled"] = "true"
 			applicationProperties["management.endpoint.info.enabled"] = "true"
+
+			// TODO check for an existing value before clobbering
+			managementBasePath := "/actuator"
+			applicationProperties["management.endpoints.web.base-path"] = managementBasePath
 
 			// TODO be smarter about resolving the correct container
 			c := &podSpec.Spec.Containers[0]
@@ -81,7 +85,7 @@ var SpringBoot = Opinions{
 			if c.LivenessProbe.Handler == (corev1.Handler{}) {
 				c.LivenessProbe.Handler = corev1.Handler{
 					HTTPGet: &corev1.HTTPGetAction{
-						Path: "/manage/info",
+						Path: managementBasePath + "/info",
 						Port: intstr.FromInt(managementPort),
 					},
 				}
@@ -96,7 +100,7 @@ var SpringBoot = Opinions{
 			if c.ReadinessProbe.Handler == (corev1.Handler{}) {
 				c.ReadinessProbe.Handler = corev1.Handler{
 					HTTPGet: &corev1.HTTPGetAction{
-						Path: "/manage/health",
+						Path: managementBasePath + "/health",
 						Port: intstr.FromInt(managementPort),
 					},
 				}
