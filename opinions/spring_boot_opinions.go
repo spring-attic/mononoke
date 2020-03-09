@@ -81,8 +81,7 @@ var SpringBoot = Opinions{
 			if c.LivenessProbe.Handler == (corev1.Handler{}) {
 				c.LivenessProbe.Handler = corev1.Handler{
 					HTTPGet: &corev1.HTTPGetAction{
-						// TODO(scothis) is this the best path for liveness?
-						Path: "/actuator/info",
+						Path: "/manage/info",
 						Port: intstr.FromInt(managementPort),
 					},
 				}
@@ -97,8 +96,7 @@ var SpringBoot = Opinions{
 			if c.ReadinessProbe.Handler == (corev1.Handler{}) {
 				c.ReadinessProbe.Handler = corev1.Handler{
 					HTTPGet: &corev1.HTTPGetAction{
-						// TODO(scothis) is this the best path for readiness?
-						Path: "/actuator/info",
+						Path: "/manage/health",
 						Port: intstr.FromInt(managementPort),
 					},
 				}
