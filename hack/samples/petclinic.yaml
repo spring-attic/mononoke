@@ -6,4 +6,5 @@ spec:
   template:
     spec:
       containers:
-      - image: scothis/petclinic
+      - name: application
+        image: scothis/petclinic
