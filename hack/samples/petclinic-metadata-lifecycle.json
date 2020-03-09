@@ -1,0 +1,333 @@
+{
+    "app": [
+        {
+            "sha": "sha256:d2b711e90f28e0d495a4872a981b87a090b83f563b7dac9dec3f909f2b055e52"
+        },
+        {
+            "sha": "sha256:d5407c101be1589ab820dcf6922c8546261693306773ecdddd5c2e19eca95444"
+        },
+        {
+            "sha": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+        },
+        {
+            "sha": "sha256:272fec79045b90818947ce9b4084c9aa4ffcfb325ccce641558ea35deee0fa7c"
+        },
+        {
+            "sha": "sha256:891f4fb8bad50295ddeb5498a5fd69ed86e36e63cb7d6b1ab09647556d405d9e"
+        },
+        {
+            "sha": "sha256:ea4ec23266a3af1204fd643de0f3572dd8dbb5697a5ef15bdae844777c19bf8f"
+        }
+    ],
+    "config": {
+        "sha": "sha256:004f0b0cd7bfdb0859a6a6572963961c890c1cd5f8e075b6b77df0de98ef8343"
+    },
+    "launcher": {
+        "sha": "sha256:a9e8a84f59d684926f7dbc105ffc7fc7a39eb87fa25c41526f2fef6ec8220737"
+    },
+    "buildpacks": [
+        {
+            "key": "org.cloudfoundry.openjdk",
+            "version": "v1.2.14",
+            "layers": {
+                "class-counter": {
+                    "sha": "sha256:326717d329f7b5ed80925859f3be234d5d792bf004ca0927bb77b85ba8dd8078",
+                    "data": {
+                        "display_name": "Class Counter",
+                        "id": "org.cloudfoundry.openjdk",
+                        "name": "Cloud Foundry OpenJDK Buildpack",
+                        "version": "v1.2.14"
+                    },
+                    "build": false,
+                    "launch": true,
+                    "cache": false
+                },
+                "java-security-properties": {
+                    "sha": "sha256:b119bc441a3df85dc16b26226015cabd63e6d36760aec24ede13e129e163fbea",
+                    "data": {
+                        "display_name": "Java Security Properties",
+                        "id": "org.cloudfoundry.openjdk",
+                        "name": "Cloud Foundry OpenJDK Buildpack",
+                        "version": "v1.2.14"
+                    },
+                    "build": false,
+                    "launch": true,
+                    "cache": false
+                },
+                "jvmkill": {
+                    "sha": "sha256:99fb8ef22d01656f4a32af51de21b182241e990e63f9cdd599395d8548a5b8bc",
+                    "data": {
+                        "id": "jvmkill",
+                        "licenses": [
+                            {
+                                "type": "Apache-2.0",
+                                "uri": "https://github.com/cloudfoundry/jvmkill/blob/master/LICENSE"
+                            }
+                        ],
+                        "name": "JVMKill Agent",
+                        "sha256": "a3092627b082cb3cdbbe4b255d35687126aa604e6b613dcda33be9f7e1277162",
+                        "stacks": [
+                            "io.buildpacks.stacks.bionic",
+                            "org.cloudfoundry.stacks.cflinuxfs3"
+                        ],
+                        "uri": "https://java-buildpack.cloudfoundry.org/jvmkill/bionic/x86_64/jvmkill-1.16.0-RELEASE.so",
+                        "version": "1.16.0"
+                    },
+                    "build": false,
+                    "launch": true,
+                    "cache": false
+                },
+                "link-local-dns": {
+                    "sha": "sha256:b1a9bc13489f58740ab2368ccc56706f1ba3610cf47fbecc9dd08444dc202365",
+                    "data": {
+                        "display_name": "Link-Local DNS",
+                        "id": "org.cloudfoundry.openjdk",
+                        "name": "Cloud Foundry OpenJDK Buildpack",
+                        "version": "v1.2.14"
+                    },
+                    "build": false,
+                    "launch": true,
+                    "cache": false
+                },
+                "memory-calculator": {
+                    "sha": "sha256:df5c51e28e02c03f9b6e21f52558ac984f0ebfe6e0e9710d024f61de034e1043",
+                    "data": {
+                        "id": "memory-calculator",
+                        "licenses": [
+                            {
+                                "type": "Apache-2.0",
+                                "uri": "https://github.com/cloudfoundry/java-buildpack-memory-calculator/blob/master/LICENSE"
+                            }
+                        ],
+                        "name": "Memory Calculator",
+                        "sha256": "90d40eab6959a7b4059c6409c4505040e8a04f75a481f7282e53430df3edda3e",
+                        "stacks": [
+                            "io.buildpacks.stacks.bionic",
+                            "org.cloudfoundry.stacks.cflinuxfs3"
+                        ],
+                        "uri": "https://java-buildpack.cloudfoundry.org/memory-calculator/bionic/x86_64/memory-calculator-4.0.0.tgz",
+                        "version": "4.0.0"
+                    },
+                    "build": false,
+                    "launch": true,
+                    "cache": false
+                },
+                "openjdk-jre": {
+                    "sha": "sha256:ce16f495a50693fc3770c51bc76f2d66984ea7ef8451b73fccc9a84246d3051b",
+                    "data": {
+                        "id": "openjdk-jre",
+                        "licenses": [
+                            {
+                                "type": "GPL-2.0 WITH Classpath-exception-2.0",
+                                "uri": "https://openjdk.java.net/legal/gplv2+ce.html"
+                            }
+                        ],
+                        "name": "OpenJDK JRE",
+                        "sha256": "c5a4e69e2be0e3e5f5bb7c759960b20650967d0f571baad4a7f15b2c03bda352",
+                        "stacks": [
+                            "io.buildpacks.stacks.bionic",
+                            "org.cloudfoundry.stacks.cflinuxfs3"
+                        ],
+                        "uri": "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.6%2B10/OpenJDK11U-jre_x64_linux_hotspot_11.0.6_10.tar.gz",
+                        "version": "11.0.6"
+                    },
+                    "build": false,
+                    "launch": true,
+                    "cache": false
+                },
+                "security-provider-configurer": {
+                    "sha": "sha256:4e7b9827eb228ca45be11ef33399105f509da58c8a96fe0b3c21af8d244bcf55",
+                    "data": {
+                        "display_name": "Security Provider Configurer",
+                        "id": "org.cloudfoundry.openjdk",
+                        "name": "Cloud Foundry OpenJDK Buildpack",
+                        "version": "v1.2.14"
+                    },
+                    "build": false,
+                    "launch": true,
+                    "cache": false
+                }
+            }
+        },
+        {
+            "key": "org.cloudfoundry.buildsystem",
+            "version": "v1.2.14",
+            "layers": {}
+        },
+        {
+            "key": "org.cloudfoundry.jvmapplication",
+            "version": "v1.1.12",
+            "layers": {
+                "executable-jar": {
+                    "sha": "sha256:3d9310c8403c8710b6adcd40999547d6dc790513c64bba6abc7a338b429c35d2",
+                    "data": {
+                        "classpath": [
+                            "/workspace"
+                        ],
+                        "main-class": "org.springframework.boot.loader.JarLauncher"
+                    },
+                    "build": true,
+                    "launch": true,
+                    "cache": true
+                }
+            }
+        },
+        {
+            "key": "org.cloudfoundry.tomcat",
+            "version": "v1.3.15",
+            "layers": {}
+        },
+        {
+            "key": "org.cloudfoundry.springboot",
+            "version": "v1.2.13",
+            "layers": {
+                "spring-boot": {
+                    "sha": "sha256:9b42dd69a639112c922b44966ada1ff6b7e917fa5f5573acad7456ee86c9bdb5",
+                    "data": {
+                        "classes": "BOOT-INF/classes/",
+                        "classpath": [
+                            "/workspace/BOOT-INF/classes",
+                            "/workspace/BOOT-INF/lib/FastInfoset-1.2.16.jar",
+                            "/workspace/BOOT-INF/lib/HdrHistogram-2.1.11.jar",
+                            "/workspace/BOOT-INF/lib/HikariCP-3.4.2.jar",
+                            "/workspace/BOOT-INF/lib/LatencyUtils-2.0.3.jar",
+                            "/workspace/BOOT-INF/lib/angular__http-2.4.10.jar",
+                            "/workspace/BOOT-INF/lib/antlr-2.7.7.jar",
+                            "/workspace/BOOT-INF/lib/aspectjweaver-1.9.5.jar",
+                            "/workspace/BOOT-INF/lib/attoparser-2.0.5.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/bootstrap-3.3.6.jar",
+                            "/workspace/BOOT-INF/lib/byte-buddy-1.10.6.jar",
+                            "/workspace/BOOT-INF/lib/cache-api-1.1.1.jar",
+                            "/workspace/BOOT-INF/lib/classgraph-4.8.44.jar",
+                            "/workspace/BOOT-INF/lib/classmate-1.5.1.jar",
+                            "/workspace/BOOT-INF/lib/dom4j-2.1.1.jar",
+                            "/workspace/BOOT-INF/lib/ehcache-3.8.1.jar",
+                            "/workspace/BOOT-INF/lib/hibernate-commons-annotations-5.1.0.Final.jar",
+                            "/workspace/BOOT-INF/lib/hibernate-core-5.4.10.Final.jar",
+                            "/workspace/BOOT-INF/lib/hibernate-validator-6.0.18.Final.jar",
+                            "/workspace/BOOT-INF/lib/hsqldb-2.5.0.jar",
+                            "/workspace/BOOT-INF/lib/istack-commons-runtime-3.0.8.jar",
+                            "/workspace/BOOT-INF/lib/jackson-annotations-2.10.2.jar",
+                            "/workspace/BOOT-INF/lib/jackson-core-2.10.2.jar",
+                            "/workspace/BOOT-INF/lib/jackson-databind-2.10.2.jar",
+                            "/workspace/BOOT-INF/lib/jackson-datatype-jdk8-2.10.2.jar",
+                            "/workspace/BOOT-INF/lib/jackson-datatype-jsr310-2.10.2.jar",
+                            "/workspace/BOOT-INF/lib/jackson-module-parameter-names-2.10.2.jar",
+                            "/workspace/BOOT-INF/lib/jakarta.activation-api-1.2.1.jar",
+                            "/workspace/BOOT-INF/lib/jakarta.annotation-api-1.3.5.jar",
+                            "/workspace/BOOT-INF/lib/jakarta.persistence-api-2.2.3.jar",
+                            "/workspace/BOOT-INF/lib/jakarta.transaction-api-1.3.3.jar",
+                            "/workspace/BOOT-INF/lib/jakarta.validation-api-2.0.2.jar",
+                            "/workspace/BOOT-INF/lib/jakarta.xml.bind-api-2.3.2.jar",
+                            "/workspace/BOOT-INF/lib/jandex-2.1.1.Final.jar",
+                            "/workspace/BOOT-INF/lib/javassist-3.24.0-GA.jar",
+                            "/workspace/BOOT-INF/lib/jaxb-runtime-2.3.2.jar",
+                            "/workspace/BOOT-INF/lib/jboss-logging-3.4.1.Final.jar",
+                            "/workspace/BOOT-INF/lib/jquery-2.2.4.jar",
+                            "/workspace/BOOT-INF/lib/jquery-ui-1.11.4.jar",
+                            "/workspace/BOOT-INF/lib/jul-to-slf4j-1.7.30.jar",
+                            "/workspace/BOOT-INF/lib/log4j-api-2.12.1.jar",
+                            "/workspace/BOOT-INF/lib/log4j-to-slf4j-2.12.1.jar",
+                            "/workspace/BOOT-INF/lib/logback-classic-1.2.3.jar",
+                            "/workspace/BOOT-INF/lib/logback-core-1.2.3.jar",
+                            "/workspace/BOOT-INF/lib/micrometer-core-1.3.2.jar",
+                            "/workspace/BOOT-INF/lib/mysql-connector-java-8.0.19.jar",
+                            "/workspace/BOOT-INF/lib/slf4j-api-1.7.30.jar",
+                            "/workspace/BOOT-INF/lib/snakeyaml-1.25.jar",
+                            "/workspace/BOOT-INF/lib/spring-aop-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-aspects-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-beans-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-actuator-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-actuator-autoconfigure-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-autoconfigure-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-actuator-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-aop-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-cache-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-data-jpa-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-jdbc-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-json-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-logging-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-thymeleaf-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-tomcat-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-validation-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-boot-starter-web-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-context-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-context-support-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-core-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-data-commons-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-data-jpa-2.2.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-expression-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-jcl-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-jdbc-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-orm-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-tx-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-web-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/spring-webmvc-5.2.3.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/stax-ex-1.8.1.jar",
+                            "/workspace/BOOT-INF/lib/thymeleaf-3.0.11.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/thymeleaf-extras-java8time-3.0.4.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/thymeleaf-spring5-3.0.11.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/tomcat-embed-core-9.0.30.jar",
+                            "/workspace/BOOT-INF/lib/tomcat-embed-el-9.0.30.jar",
+                            "/workspace/BOOT-INF/lib/tomcat-embed-websocket-9.0.30.jar",
+                            "/workspace/BOOT-INF/lib/txw2-2.3.2.jar",
+                            "/workspace/BOOT-INF/lib/unbescape-1.1.6.RELEASE.jar",
+                            "/workspace/BOOT-INF/lib/webjars-locator-core-0.41.jar"
+                        ],
+                        "lib": "BOOT-INF/lib/",
+                        "start-class": "org.springframework.samples.petclinic.PetClinicApplication",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    "build": true,
+                    "launch": true,
+                    "cache": true
+                }
+            }
+        },
+        {
+            "key": "org.cloudfoundry.distzip",
+            "version": "v1.1.12",
+            "layers": {}
+        },
+        {
+            "key": "org.cloudfoundry.springautoreconfiguration",
+            "version": "v1.1.11",
+            "layers": {
+                "auto-reconfiguration": {
+                    "sha": "sha256:5d0d20a508482c3204bb52766b409b12f336d346a499d0d0e7930a2d87b8a178",
+                    "data": {
+                        "id": "auto-reconfiguration",
+                        "licenses": [
+                            {
+                                "type": "Apache-2.0",
+                                "uri": "https://github.com/cloudfoundry/java-buildpack-auto-reconfiguration/blob/master/LICENSE"
+                            }
+                        ],
+                        "name": "Spring Auto-reconfiguration",
+                        "sha256": "46ab131165317d91fd4ad3186abf755222744e2d277dc413def06f3ad45ab150",
+                        "stacks": [
+                            "io.buildpacks.stacks.bionic",
+                            "org.cloudfoundry.stacks.cflinuxfs3"
+                        ],
+                        "uri": "https://repo.spring.io/release/org/cloudfoundry/java-buildpack-auto-reconfiguration/2.11.0.RELEASE/java-buildpack-auto-reconfiguration-2.11.0.RELEASE.jar",
+                        "version": "2.11.0"
+                    },
+                    "build": false,
+                    "launch": true,
+                    "cache": false
+                }
+            }
+        }
+    ],
+    "runImage": {
+        "topLayer": "sha256:70770ccee3fd0cb3e31eed9008bc5eeb37a12f6965c7faab040fc336771e1fac",
+        "reference": "55c13fb1611064c097725aacd9e456e077bc6533c5d84c296af5ff321c0a662c"
+    },
+    "stack": {
+        "runImage": {
+            "image": "cloudfoundry/run:base-cnb"
+        }
+    }
+}

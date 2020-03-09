@@ -18,6 +18,7 @@ package opinions
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 
 	"github.com/spring-cloud-incubator/mononoke/cnb"
@@ -29,8 +30,8 @@ var SpringBoot = Opinions{
 	{
 		Id: "spring-web-port",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
-			// TODO apply if the metadata indicates a webapp
-			return true
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			return bootMetadata.HasDependency("spring-web")
 		},
 		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
@@ -48,8 +49,8 @@ var SpringBoot = Opinions{
 	{
 		Id: "spring-boot-actuator-probes",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
-			// TODO apply if the metadata indicates a spring-boot-actuator is installed
-			return false
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			return bootMetadata.HasDependency("spring-boot-actuator")
 		},
 		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
@@ -166,6 +167,39 @@ var SpringBoot = Opinions{
 		},
 	},
 	// TODO add a whole lot more opinions
+}
+
+func NewSpringBootBOMMetadata(imageMetadata cnb.BuildMetadata) SpringBootBOMMetadata {
+	// TODO(scothis) find a better way to convert map[string]interface{} to SpringBootBOMMetadata{}
+	bom := imageMetadata.FindBOM("spring-boot")
+	bootMetadata := SpringBootBOMMetadata{}
+	bytes, err := json.Marshal(bom.Metadata)
+	if err != nil {
+		panic(err)
+	}
+	json.Unmarshal(bytes, &bootMetadata)
+	return bootMetadata
+}
+
+type SpringBootBOMMetadata struct {
+	Classes      string                            `json:"classes"`
+	ClassPath    []string                          `json:"classpath"`
+	Dependencies []SpringBootBOMMetadataDependency `json:"dependencies"`
+}
+
+func (m *SpringBootBOMMetadata) HasDependency(name string) bool {
+	for _, dep := range m.Dependencies {
+		if dep.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+type SpringBootBOMMetadataDependency struct {
+	Name    string `json:"name"`
+	Sha256  string `json:"sha256"`
+	Version string `json:"version"`
 }
 
 type springApplicationPropertiesKey struct{}

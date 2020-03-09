@@ -33,6 +33,15 @@ type Process struct {
 	Direct  bool     `json:"direct"`
 }
 
+func (m *BuildMetadata) FindBOM(name string) BOMEntry {
+	for _, entry := range m.BOM {
+		if entry.Name == name {
+			return entry
+		}
+	}
+	return BOMEntry{}
+}
+
 func ParseBuildMetadata(img v1.Image) (BuildMetadata, error) {
 	cfg, err := img.ConfigFile()
 	if err != nil {
