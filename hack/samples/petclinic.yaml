@@ -1,10 +1,10 @@
 apiVersion: apps.mononoke.local/v1alpha1
 kind: SpringBootApplication
 metadata:
-  name: my-app
+  name: petclinic
 spec:
   template:
     spec:
       containers:
-      - name: app
-        image: dsyer/petclinic
+      - name: application
+        image: scothis/petclinic

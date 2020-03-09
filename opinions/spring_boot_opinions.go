@@ -18,17 +18,20 @@ package opinions
 
 import (
 	"context"
+	"encoding/json"
+	"strconv"
 
 	"github.com/spring-cloud-incubator/mononoke/cnb"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var SpringBoot = Opinions{
 	{
 		Id: "spring-web-port",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
-			// TODO apply if the metadata indicates a webapp
-			return true
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			return bootMetadata.HasDependency("spring-web")
 		},
 		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
@@ -44,19 +47,159 @@ var SpringBoot = Opinions{
 		},
 	},
 	{
-		Id: "spring-boot-actuator-port",
+		Id: "spring-boot-actuator-probes",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
-			// TODO apply if the metadata indicates a spring-boot-actuator is installed
-			return true
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			return bootMetadata.HasDependency("spring-boot-actuator")
 		},
 		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
-			// TODO check for an existing port before clobbering
-			applicationProperties["management.server.port"] = "8081"
+
+			// TODO check for an existing values before clobbering
+			managementPort := 9001
+
+			applicationProperties["management.server.port"] = strconv.Itoa(managementPort)
+			applicationProperties["management.server.ssl.enabled"] = "false"
+			applicationProperties["management.endpoint.health.enabled"] = "true"
+			applicationProperties["management.endpoint.info.enabled"] = "true"
+
+			// TODO be smarter about resolving the correct container
+			c := &podSpec.Spec.Containers[0]
+
+			// define probes
+			if c.StartupProbe == nil {
+				// requires k8s 1.16+
+				// TODO(scothis) add if k8s can handle it
+			}
+			if c.LivenessProbe == nil {
+				c.LivenessProbe = &corev1.Probe{
+					InitialDelaySeconds: 30,
+					PeriodSeconds:       5,
+					TimeoutSeconds:      5,
+				}
+			}
+			if c.LivenessProbe.Handler == (corev1.Handler{}) {
+				c.LivenessProbe.Handler = corev1.Handler{
+					HTTPGet: &corev1.HTTPGetAction{
+						// TODO(scothis) is this the best path for liveness?
+						Path: "/actuator/info",
+						Port: intstr.FromInt(managementPort),
+					},
+				}
+			}
+			if c.ReadinessProbe == nil {
+				c.ReadinessProbe = &corev1.Probe{
+					InitialDelaySeconds: 5,
+					PeriodSeconds:       1,
+					TimeoutSeconds:      5,
+				}
+			}
+			if c.ReadinessProbe.Handler == (corev1.Handler{}) {
+				c.ReadinessProbe.Handler = corev1.Handler{
+					HTTPGet: &corev1.HTTPGetAction{
+						// TODO(scothis) is this the best path for readiness?
+						Path: "/actuator/info",
+						Port: intstr.FromInt(managementPort),
+					},
+				}
+			}
+
+			return nil
+		},
+	},
+	{
+		// fallback if spring-boot-actuator-probes is not applied
+		Id: "spring-boot-probes",
+		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+			return !applied.Has("spring-boot-actuator-probes") && applied.Has("spring-web-port")
+		},
+		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+			applicationProperties := SpringApplicationProperties(ctx)
+
+			if _, ok := applicationProperties["server.port"]; !ok {
+				// no port, so we can't provide probes
+				return nil
+			}
+
+			port, err := strconv.Atoi(applicationProperties["server.port"])
+			if err != nil {
+				return err
+			}
+
+			// TODO be smarter about resolving the correct container
+			c := &podSpec.Spec.Containers[0]
+
+			// define probes
+			if c.StartupProbe == nil {
+				// requires k8s 1.16+
+				// TODO(scothis) add if k8s can handle it
+			}
+			if c.LivenessProbe == nil {
+				c.LivenessProbe = &corev1.Probe{
+					InitialDelaySeconds: 30,
+					PeriodSeconds:       5,
+					TimeoutSeconds:      5,
+				}
+			}
+			if c.LivenessProbe.Handler == (corev1.Handler{}) {
+				c.LivenessProbe.Handler = corev1.Handler{
+					TCPSocket: &corev1.TCPSocketAction{
+						Port: intstr.FromInt(port),
+					},
+				}
+			}
+			if c.ReadinessProbe == nil {
+				c.ReadinessProbe = &corev1.Probe{
+					InitialDelaySeconds: 5,
+					PeriodSeconds:       1,
+					TimeoutSeconds:      5,
+				}
+			}
+			if c.ReadinessProbe.Handler == (corev1.Handler{}) {
+				c.ReadinessProbe.Handler = corev1.Handler{
+					TCPSocket: &corev1.TCPSocketAction{
+						Port: intstr.FromInt(port),
+					},
+				}
+			}
+
 			return nil
 		},
 	},
 	// TODO add a whole lot more opinions
+}
+
+func NewSpringBootBOMMetadata(imageMetadata cnb.BuildMetadata) SpringBootBOMMetadata {
+	// TODO(scothis) find a better way to convert map[string]interface{} to SpringBootBOMMetadata{}
+	bom := imageMetadata.FindBOM("spring-boot")
+	bootMetadata := SpringBootBOMMetadata{}
+	bytes, err := json.Marshal(bom.Metadata)
+	if err != nil {
+		panic(err)
+	}
+	json.Unmarshal(bytes, &bootMetadata)
+	return bootMetadata
+}
+
+type SpringBootBOMMetadata struct {
+	Classes      string                            `json:"classes"`
+	ClassPath    []string                          `json:"classpath"`
+	Dependencies []SpringBootBOMMetadataDependency `json:"dependencies"`
+}
+
+func (m *SpringBootBOMMetadata) HasDependency(name string) bool {
+	for _, dep := range m.Dependencies {
+		if dep.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+type SpringBootBOMMetadataDependency struct {
+	Name    string `json:"name"`
+	Sha256  string `json:"sha256"`
+	Version string `json:"version"`
 }
 
 type springApplicationPropertiesKey struct{}

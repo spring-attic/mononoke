@@ -1,0 +1,758 @@
+{
+    "processes": [
+        {
+            "type": "executable-jar",
+            "command": "java -cp $CLASSPATH $JAVA_OPTS org.springframework.boot.loader.JarLauncher",
+            "args": null,
+            "direct": false
+        },
+        {
+            "type": "spring-boot",
+            "command": "java -cp $CLASSPATH $JAVA_OPTS org.springframework.samples.petclinic.PetClinicApplication",
+            "args": null,
+            "direct": false
+        },
+        {
+            "type": "task",
+            "command": "java -cp $CLASSPATH $JAVA_OPTS org.springframework.samples.petclinic.PetClinicApplication",
+            "args": null,
+            "direct": false
+        },
+        {
+            "type": "web",
+            "command": "java -cp $CLASSPATH $JAVA_OPTS org.springframework.samples.petclinic.PetClinicApplication",
+            "args": null,
+            "direct": false
+        }
+    ],
+    "buildpacks": [
+        {
+            "id": "org.cloudfoundry.openjdk",
+            "version": "v1.2.14"
+        },
+        {
+            "id": "org.cloudfoundry.buildsystem",
+            "version": "v1.2.14"
+        },
+        {
+            "id": "org.cloudfoundry.jvmapplication",
+            "version": "v1.1.12"
+        },
+        {
+            "id": "org.cloudfoundry.tomcat",
+            "version": "v1.3.15"
+        },
+        {
+            "id": "org.cloudfoundry.springboot",
+            "version": "v1.2.13"
+        },
+        {
+            "id": "org.cloudfoundry.distzip",
+            "version": "v1.1.12"
+        },
+        {
+            "id": "org.cloudfoundry.springautoreconfiguration",
+            "version": "v1.1.11"
+        }
+    ],
+    "bom": [
+        {
+            "name": "openjdk-jre",
+            "version": "11.0.6",
+            "metadata": {
+                "licenses": [
+                    {
+                        "type": "GPL-2.0 WITH Classpath-exception-2.0",
+                        "uri": "https://openjdk.java.net/legal/gplv2+ce.html"
+                    }
+                ],
+                "name": "OpenJDK JRE",
+                "sha256": "c5a4e69e2be0e3e5f5bb7c759960b20650967d0f571baad4a7f15b2c03bda352",
+                "stacks": [
+                    "io.buildpacks.stacks.bionic",
+                    "org.cloudfoundry.stacks.cflinuxfs3"
+                ],
+                "uri": "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.6%2B10/OpenJDK11U-jre_x64_linux_hotspot_11.0.6_10.tar.gz"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.openjdk",
+                "version": "v1.2.14"
+            }
+        },
+        {
+            "name": "security-provider-configurer",
+            "version": "v1.2.14",
+            "metadata": {
+                "id": "org.cloudfoundry.openjdk",
+                "name": "Cloud Foundry OpenJDK Buildpack"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.openjdk",
+                "version": "v1.2.14"
+            }
+        },
+        {
+            "name": "link-local-dns",
+            "version": "v1.2.14",
+            "metadata": {
+                "id": "org.cloudfoundry.openjdk",
+                "name": "Cloud Foundry OpenJDK Buildpack"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.openjdk",
+                "version": "v1.2.14"
+            }
+        },
+        {
+            "name": "jvmkill",
+            "version": "1.16.0",
+            "metadata": {
+                "licenses": [
+                    {
+                        "type": "Apache-2.0",
+                        "uri": "https://github.com/cloudfoundry/jvmkill/blob/master/LICENSE"
+                    }
+                ],
+                "name": "JVMKill Agent",
+                "sha256": "a3092627b082cb3cdbbe4b255d35687126aa604e6b613dcda33be9f7e1277162",
+                "stacks": [
+                    "io.buildpacks.stacks.bionic",
+                    "org.cloudfoundry.stacks.cflinuxfs3"
+                ],
+                "uri": "https://java-buildpack.cloudfoundry.org/jvmkill/bionic/x86_64/jvmkill-1.16.0-RELEASE.so"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.openjdk",
+                "version": "v1.2.14"
+            }
+        },
+        {
+            "name": "class-counter",
+            "version": "v1.2.14",
+            "metadata": {
+                "id": "org.cloudfoundry.openjdk",
+                "name": "Cloud Foundry OpenJDK Buildpack"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.openjdk",
+                "version": "v1.2.14"
+            }
+        },
+        {
+            "name": "memory-calculator",
+            "version": "4.0.0",
+            "metadata": {
+                "licenses": [
+                    {
+                        "type": "Apache-2.0",
+                        "uri": "https://github.com/cloudfoundry/java-buildpack-memory-calculator/blob/master/LICENSE"
+                    }
+                ],
+                "name": "Memory Calculator",
+                "sha256": "90d40eab6959a7b4059c6409c4505040e8a04f75a481f7282e53430df3edda3e",
+                "stacks": [
+                    "io.buildpacks.stacks.bionic",
+                    "org.cloudfoundry.stacks.cflinuxfs3"
+                ],
+                "uri": "https://java-buildpack.cloudfoundry.org/memory-calculator/bionic/x86_64/memory-calculator-4.0.0.tgz"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.openjdk",
+                "version": "v1.2.14"
+            }
+        },
+        {
+            "name": "executable-jar",
+            "version": "",
+            "metadata": {
+                "classpath": [
+                    "/workspace"
+                ],
+                "main-class": "org.springframework.boot.loader.JarLauncher"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.jvmapplication",
+                "version": "v1.1.12"
+            }
+        },
+        {
+            "name": "spring-boot",
+            "version": "",
+            "metadata": {
+                "classes": "BOOT-INF/classes/",
+                "classpath": [
+                    "/workspace/BOOT-INF/classes",
+                    "/workspace/BOOT-INF/lib/FastInfoset-1.2.16.jar",
+                    "/workspace/BOOT-INF/lib/HdrHistogram-2.1.11.jar",
+                    "/workspace/BOOT-INF/lib/HikariCP-3.4.2.jar",
+                    "/workspace/BOOT-INF/lib/LatencyUtils-2.0.3.jar",
+                    "/workspace/BOOT-INF/lib/angular__http-2.4.10.jar",
+                    "/workspace/BOOT-INF/lib/antlr-2.7.7.jar",
+                    "/workspace/BOOT-INF/lib/aspectjweaver-1.9.5.jar",
+                    "/workspace/BOOT-INF/lib/attoparser-2.0.5.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/bootstrap-3.3.6.jar",
+                    "/workspace/BOOT-INF/lib/byte-buddy-1.10.6.jar",
+                    "/workspace/BOOT-INF/lib/cache-api-1.1.1.jar",
+                    "/workspace/BOOT-INF/lib/classgraph-4.8.44.jar",
+                    "/workspace/BOOT-INF/lib/classmate-1.5.1.jar",
+                    "/workspace/BOOT-INF/lib/dom4j-2.1.1.jar",
+                    "/workspace/BOOT-INF/lib/ehcache-3.8.1.jar",
+                    "/workspace/BOOT-INF/lib/hibernate-commons-annotations-5.1.0.Final.jar",
+                    "/workspace/BOOT-INF/lib/hibernate-core-5.4.10.Final.jar",
+                    "/workspace/BOOT-INF/lib/hibernate-validator-6.0.18.Final.jar",
+                    "/workspace/BOOT-INF/lib/hsqldb-2.5.0.jar",
+                    "/workspace/BOOT-INF/lib/istack-commons-runtime-3.0.8.jar",
+                    "/workspace/BOOT-INF/lib/jackson-annotations-2.10.2.jar",
+                    "/workspace/BOOT-INF/lib/jackson-core-2.10.2.jar",
+                    "/workspace/BOOT-INF/lib/jackson-databind-2.10.2.jar",
+                    "/workspace/BOOT-INF/lib/jackson-datatype-jdk8-2.10.2.jar",
+                    "/workspace/BOOT-INF/lib/jackson-datatype-jsr310-2.10.2.jar",
+                    "/workspace/BOOT-INF/lib/jackson-module-parameter-names-2.10.2.jar",
+                    "/workspace/BOOT-INF/lib/jakarta.activation-api-1.2.1.jar",
+                    "/workspace/BOOT-INF/lib/jakarta.annotation-api-1.3.5.jar",
+                    "/workspace/BOOT-INF/lib/jakarta.persistence-api-2.2.3.jar",
+                    "/workspace/BOOT-INF/lib/jakarta.transaction-api-1.3.3.jar",
+                    "/workspace/BOOT-INF/lib/jakarta.validation-api-2.0.2.jar",
+                    "/workspace/BOOT-INF/lib/jakarta.xml.bind-api-2.3.2.jar",
+                    "/workspace/BOOT-INF/lib/jandex-2.1.1.Final.jar",
+                    "/workspace/BOOT-INF/lib/javassist-3.24.0-GA.jar",
+                    "/workspace/BOOT-INF/lib/jaxb-runtime-2.3.2.jar",
+                    "/workspace/BOOT-INF/lib/jboss-logging-3.4.1.Final.jar",
+                    "/workspace/BOOT-INF/lib/jquery-2.2.4.jar",
+                    "/workspace/BOOT-INF/lib/jquery-ui-1.11.4.jar",
+                    "/workspace/BOOT-INF/lib/jul-to-slf4j-1.7.30.jar",
+                    "/workspace/BOOT-INF/lib/log4j-api-2.12.1.jar",
+                    "/workspace/BOOT-INF/lib/log4j-to-slf4j-2.12.1.jar",
+                    "/workspace/BOOT-INF/lib/logback-classic-1.2.3.jar",
+                    "/workspace/BOOT-INF/lib/logback-core-1.2.3.jar",
+                    "/workspace/BOOT-INF/lib/micrometer-core-1.3.2.jar",
+                    "/workspace/BOOT-INF/lib/mysql-connector-java-8.0.19.jar",
+                    "/workspace/BOOT-INF/lib/slf4j-api-1.7.30.jar",
+                    "/workspace/BOOT-INF/lib/snakeyaml-1.25.jar",
+                    "/workspace/BOOT-INF/lib/spring-aop-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-aspects-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-beans-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-actuator-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-actuator-autoconfigure-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-autoconfigure-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-actuator-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-aop-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-cache-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-data-jpa-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-jdbc-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-json-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-logging-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-thymeleaf-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-tomcat-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-validation-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-boot-starter-web-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-context-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-context-support-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-core-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-data-commons-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-data-jpa-2.2.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-expression-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-jcl-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-jdbc-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-orm-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-tx-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-web-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/spring-webmvc-5.2.3.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/stax-ex-1.8.1.jar",
+                    "/workspace/BOOT-INF/lib/thymeleaf-3.0.11.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/thymeleaf-extras-java8time-3.0.4.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/thymeleaf-spring5-3.0.11.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/tomcat-embed-core-9.0.30.jar",
+                    "/workspace/BOOT-INF/lib/tomcat-embed-el-9.0.30.jar",
+                    "/workspace/BOOT-INF/lib/tomcat-embed-websocket-9.0.30.jar",
+                    "/workspace/BOOT-INF/lib/txw2-2.3.2.jar",
+                    "/workspace/BOOT-INF/lib/unbescape-1.1.6.RELEASE.jar",
+                    "/workspace/BOOT-INF/lib/webjars-locator-core-0.41.jar"
+                ],
+                "dependencies": [
+                    {
+                        "name": "FastInfoset",
+                        "sha256": "056f3a1e144409f21ed16afc26805f58e9a21f3fce1543c42d400719d250c511",
+                        "version": "1.2.16"
+                    },
+                    {
+                        "name": "HdrHistogram",
+                        "sha256": "96671e0898b35d602869efd9339b1929cdac855d2bc64922efbbcdd2209816bc",
+                        "version": "2.1.11"
+                    },
+                    {
+                        "name": "HikariCP",
+                        "sha256": "ae7a767bf37c9792523ed3ed722b46e8cf2360f546f6250eb98c83355ad697f9",
+                        "version": "3.4.2"
+                    },
+                    {
+                        "name": "LatencyUtils",
+                        "sha256": "a32a9ffa06b2f4e01c5360f8f9df7bc5d9454a5d373cd8f361347fa5a57165ec",
+                        "version": "2.0.3"
+                    },
+                    {
+                        "name": "angular__http",
+                        "sha256": "95290afe984b4ea9d1811b1c1f2a3ff6076f5d474bf3d9b1c61371abb24644e1",
+                        "version": "2.4.10"
+                    },
+                    {
+                        "name": "antlr",
+                        "sha256": "88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c",
+                        "version": "2.7.7"
+                    },
+                    {
+                        "name": "aspectjweaver",
+                        "sha256": "3ae596023e0789328fb6fbe404bf51746e21b524e58741e0f415be27c6f98aec",
+                        "version": "1.9.5"
+                    },
+                    {
+                        "name": "attoparser",
+                        "sha256": "d4015d56147f696ed0a90078675bc940529f907e7b2dfc1fad754e8033da8796",
+                        "version": "2.0.5.RELEASE"
+                    },
+                    {
+                        "name": "bootstrap",
+                        "sha256": "27e4eb72ed1153541c3b8d1e57bf9dc6acb616002eae84c36b5e9ad6afd6009d",
+                        "version": "3.3.6"
+                    },
+                    {
+                        "name": "byte-buddy",
+                        "sha256": "9ba2fdecdd0931399b39b7847f23e45498e84ab61c93aeedb6e8c55bc9d09307",
+                        "version": "1.10.6"
+                    },
+                    {
+                        "name": "cache-api",
+                        "sha256": "9f34e007edfa82a7b2a2e1b969477dcf5099ce7f4f926fb54ce7e27c4a0cd54b",
+                        "version": "1.1.1"
+                    },
+                    {
+                        "name": "classgraph",
+                        "sha256": "c4b213084ca1f4bf88484a5fe3d53cc46b9b6c17ebec74be30abdfd4f1c43790",
+                        "version": "4.8.44"
+                    },
+                    {
+                        "name": "classmate",
+                        "sha256": "aab4de3006808c09d25dd4ff4a3611cfb63c95463cfd99e73d2e1680d229a33b",
+                        "version": "1.5.1"
+                    },
+                    {
+                        "name": "dom4j",
+                        "sha256": "a2ef5fb4990b914a31176c51f6137f6f04253dd165420985051f9fd4fb032128",
+                        "version": "2.1.1"
+                    },
+                    {
+                        "name": "ehcache",
+                        "sha256": "95ed983b906d5d292ea41f561c09e58e9c22574a4fd73958bd9956a645365cfc",
+                        "version": "3.8.1"
+                    },
+                    {
+                        "name": "hibernate-commons-annotations",
+                        "sha256": "1e3bfcfe9efdb40e9d3c084c9bcf8597e492e30294c7e40b56ed18a67c2838cd",
+                        "version": "5.1.0.Final"
+                    },
+                    {
+                        "name": "hibernate-core",
+                        "sha256": "4c600a0ab33e412c2cb72830feca7e48c7dea068bbfd775ed7b72d16bb0f898d",
+                        "version": "5.4.10.Final"
+                    },
+                    {
+                        "name": "hibernate-validator",
+                        "sha256": "79fb11445bc48e1ea6fb259e825d58b3c9a5fa2b7e3c9527e41e4aeda82de907",
+                        "version": "6.0.18.Final"
+                    },
+                    {
+                        "name": "hsqldb",
+                        "sha256": "acda459cc9d6a07b39b284364e93b5f29e11877d687e9544b91778d3554d2b38",
+                        "version": "2.5.0"
+                    },
+                    {
+                        "name": "istack-commons-runtime",
+                        "sha256": "4ffabb06be454a05e4398e20c77fa2b6308d4b88dfbef7ca30a76b5b7d5505ef",
+                        "version": "3.0.8"
+                    },
+                    {
+                        "name": "jackson-annotations",
+                        "sha256": "8c3cba89bf3e03b35a0e6f892c2eb17ed8fdde2e214c3a4c18703d63796bae46",
+                        "version": "2.10.2"
+                    },
+                    {
+                        "name": "jackson-core",
+                        "sha256": "4c41f22a48f6ebb28752baeb6d25bf09ba4ff0ad8bfb82650dde448928b9da4f",
+                        "version": "2.10.2"
+                    },
+                    {
+                        "name": "jackson-databind",
+                        "sha256": "42c25644e35fadfbded1b7f35a8d1e70a86737f190e43aa2c56cea4b96cbda88",
+                        "version": "2.10.2"
+                    },
+                    {
+                        "name": "jackson-datatype-jdk8",
+                        "sha256": "e69a1ec4ffe6f13b2a035c0c13d77b1b08fdc9d3e1f606b69e74c4b2efc89197",
+                        "version": "2.10.2"
+                    },
+                    {
+                        "name": "jackson-datatype-jsr310",
+                        "sha256": "a3212dceae078acb77987345ddf787a95401ce4d5e2b01e67607733b9d5a6b58",
+                        "version": "2.10.2"
+                    },
+                    {
+                        "name": "jackson-module-parameter-names",
+                        "sha256": "98b958b9fc425ea56410ee2d236e406b5c18719c16462d083409b2c314a2e96d",
+                        "version": "2.10.2"
+                    },
+                    {
+                        "name": "jakarta.activation-api",
+                        "sha256": "8b0a0f52fa8b05c5431921a063ed866efaa41dadf2e3a7ee3e1961f2b0d9645b",
+                        "version": "1.2.1"
+                    },
+                    {
+                        "name": "jakarta.annotation-api",
+                        "sha256": "85fb03fc054cdf4efca8efd9b6712bbb418e1ab98241c4539c8585bbc23e1b8a",
+                        "version": "1.3.5"
+                    },
+                    {
+                        "name": "jakarta.persistence-api",
+                        "sha256": "0c2d73ab36ad24eeed6e0bea928e9d0ef771de8df689e23b7754d366dda27c53",
+                        "version": "2.2.3"
+                    },
+                    {
+                        "name": "jakarta.transaction-api",
+                        "sha256": "0b02a194dd04ee2e192dc9da9579e10955dd6e8ac707adfc91d92f119b0e67ab",
+                        "version": "1.3.3"
+                    },
+                    {
+                        "name": "jakarta.validation-api",
+                        "sha256": "b42d42428f3d922c892a909fa043287d577c0c5b165ad9b7d568cebf87fc9ea4",
+                        "version": "2.0.2"
+                    },
+                    {
+                        "name": "jakarta.xml.bind-api",
+                        "sha256": "69156304079bdeed9fc0ae3b39389f19b3cc4ba4443bc80508995394ead742ea",
+                        "version": "2.3.2"
+                    },
+                    {
+                        "name": "jandex",
+                        "sha256": "fbc29e662aaf8741c1c0bdb1c725f120bb4b3a37644957e5ea83ba516029893c",
+                        "version": "2.1.1.Final"
+                    },
+                    {
+                        "name": "javassist",
+                        "sha256": "aba81efa678b621203fb89aeff81d6f126f7a9dd709401e5609c42976684ae23",
+                        "version": "3.24.0-GA"
+                    },
+                    {
+                        "name": "jaxb-runtime",
+                        "sha256": "e6e0a1e89fb6ff786279e6a0082d5cef52dc2ebe67053d041800737652b4fd1b",
+                        "version": "2.3.2"
+                    },
+                    {
+                        "name": "jboss-logging",
+                        "sha256": "8efe877d93e5e1057a1388b2950503b88b0c28447364fde08adbec61e524eeb8",
+                        "version": "3.4.1.Final"
+                    },
+                    {
+                        "name": "jquery",
+                        "sha256": "de28c4da0ea9f16101352dd3582ec8021ee5e2de5f45104ca171876003d54db6",
+                        "version": "2.2.4"
+                    },
+                    {
+                        "name": "jquery-ui",
+                        "sha256": "3c932cfd6ddb3ff3e3a4edfb5180e4d803d875746cf46b9153f3b443572f97a6",
+                        "version": "1.11.4"
+                    },
+                    {
+                        "name": "jul-to-slf4j",
+                        "sha256": "bbcbfdaa72572255c4f85207a9bfdb24358dc993e41252331bd4d0913e4988b9",
+                        "version": "1.7.30"
+                    },
+                    {
+                        "name": "log4j-api",
+                        "sha256": "429534d03bdb728879ab551d469e26f6f7ff4c8a8627f59ac68ab6ef26063515",
+                        "version": "2.12.1"
+                    },
+                    {
+                        "name": "log4j-to-slf4j",
+                        "sha256": "69d4aa504294033ea0d1236aabe81ed3f6393b6eb42e61899b197a51a3df73e9",
+                        "version": "2.12.1"
+                    },
+                    {
+                        "name": "logback-classic",
+                        "sha256": "fb53f8539e7fcb8f093a56e138112056ec1dc809ebb020b59d8a36a5ebac37e0",
+                        "version": "1.2.3"
+                    },
+                    {
+                        "name": "logback-core",
+                        "sha256": "5946d837fe6f960c02a53eda7a6926ecc3c758bbdd69aa453ee429f858217f22",
+                        "version": "1.2.3"
+                    },
+                    {
+                        "name": "micrometer-core",
+                        "sha256": "f5bac7594093c336fe9abb588aa8643f6ea2f6ad8def7df3a0b1241a7c63184b",
+                        "version": "1.3.2"
+                    },
+                    {
+                        "name": "mysql-connector-java",
+                        "sha256": "f93c6d717fff1bdc8941f0feba66ac13692e58dc382ca4b543cabbdb150d8bf7",
+                        "version": "8.0.19"
+                    },
+                    {
+                        "name": "slf4j-api",
+                        "sha256": "cdba07964d1bb40a0761485c6b1e8c2f8fd9eb1d19c53928ac0d7f9510105c57",
+                        "version": "1.7.30"
+                    },
+                    {
+                        "name": "snakeyaml",
+                        "sha256": "b50ef33187e7dc922b26dbe4dd0fdb3a9cf349e75a08b95269901548eee546eb",
+                        "version": "1.25"
+                    },
+                    {
+                        "name": "spring-aop",
+                        "sha256": "a8f9743e22ea74c99e8d6fc16a72034010beadbe852a1c318b3a9ab77c07851c",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-aspects",
+                        "sha256": "f5a8ad37135f38d6bf7260839f9b10749a8a9175d74addfb581244ff7510144f",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-beans",
+                        "sha256": "d3083070ad4eaf32e003b86ca0e7c0cb4fd2819800fef86ceb1043d387c14e2d",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot",
+                        "sha256": "176befc7b90e8498f44e21994a70d69ba360ef1e858ff3cea8282e802372daf2",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-actuator",
+                        "sha256": "67f7b1f6036a34d3cd709ea784a0c1d11695ec329c4d58c5543390665c55e8e1",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-actuator-autoconfigure",
+                        "sha256": "6c1f5bb00c4f63fc07ede7b3cd778f22edbb092d286c9babb466aedf5cc3692f",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-autoconfigure",
+                        "sha256": "2ce0288593b2053bdba628974d1d785bf02af541264f633dfa29f294a01d520b",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter",
+                        "sha256": "436ce65593dc1f34efd9dda09cbfa4466c40245b5054e102f3ace3ac56884665",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-actuator",
+                        "sha256": "f8859d3f6b41db5df5804ae6a6ade2df55c8b999e2b90472f3ce1172d773b930",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-aop",
+                        "sha256": "17fa8c41f724e596ac5c4d76138da48993fc8f4c4a69c7490245f278cc5a1961",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-cache",
+                        "sha256": "ec4ad83e73d1260e6e6ec1fc837618d2736d30228ef54a36ed22655e8159acd9",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-data-jpa",
+                        "sha256": "eeb855fdcd8efb334aff6e1b4e522227616762512d82710a240199a558ba2ea8",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-jdbc",
+                        "sha256": "12472a6cd27d4c5348be5835e25a1a7bb8d4f2858d52cdd4e8a541f48e7ccd8c",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-json",
+                        "sha256": "a33b4c5ba212347cf956114d3cfecdc8de43a9c5ec4c5c861bbbb0d7698db1d9",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-logging",
+                        "sha256": "75bab656a801e932d56e7726a772601d15f959b8ed01853287338aa37931ed12",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-thymeleaf",
+                        "sha256": "f6c82b9a5ad8c1a81648af9aea6e45442d89e56e06ecdd9ff72ce22676201b89",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-tomcat",
+                        "sha256": "b763a0cd9c0887f2a26408feb0cb30171233fd7bd03d50ae160c5317d16ab825",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-validation",
+                        "sha256": "1b577694e05d7673fa5d196f809abe1595c0c47bb2234e648d482dc183a9c8f2",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-boot-starter-web",
+                        "sha256": "eb4d4ad19fe1724fd02cfce9c467c0b67766b5a4a54d0e54fc51826d9e3d87b8",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-context",
+                        "sha256": "82c625cffed80685b153700359a6c6d5c91018069a0171cf21a7defb0267e993",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-context-support",
+                        "sha256": "965b0703ba1d817d8dbe592694bc0e42cc84263f9da0ed7b9616024d19935f68",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-core",
+                        "sha256": "6df908f4deaeefd2b03b56a00246cc0dc0d941d9636e811025bc6fc5a2a44851",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-data-commons",
+                        "sha256": "08ab3dcf9f83511034e4f1d4d27769561daf5166448d3bd9c2f8c66670ed1f9b",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-data-jpa",
+                        "sha256": "14df0aeb6acc762d661305c0291c6c246f0914cf2036e5bd087580b3be14cda3",
+                        "version": "2.2.4.RELEASE"
+                    },
+                    {
+                        "name": "spring-expression",
+                        "sha256": "1ba798e1f4da9e5ad68e67d7e7abe39f141674762c8755d952edeb0380d384b9",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-jcl",
+                        "sha256": "ddac1c1c3362ac3ff415febf2fc3fd9c8facb9423eb4ede9b6444d68bb3a578f",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-jdbc",
+                        "sha256": "f79fdbdcb0a33559c8d1b62268bb4130f2210e51c2df042a427994a8ed60a919",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-orm",
+                        "sha256": "d82bcede5b53d72242bb0edfb6aafdf992006ae5eb1af76eca6be3da323d2017",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-tx",
+                        "sha256": "ecaad16431f612082f1b8724e45294ed4eee24346acd1a33fb3939018aff60b7",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-web",
+                        "sha256": "25d264969c624cb8103a7f2b36b148ea1be8b87780c4758e7f9a6e2bc8416d76",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "spring-webmvc",
+                        "sha256": "b3b0a2477e67b050dd5c08dc96e76db5950cbccba075e782c24f73eda49a0160",
+                        "version": "5.2.3.RELEASE"
+                    },
+                    {
+                        "name": "stax-ex",
+                        "sha256": "20522549056e9e50aa35ef0b445a2e47a53d06be0b0a9467d704e2483ffb049a",
+                        "version": "1.8.1"
+                    },
+                    {
+                        "name": "thymeleaf",
+                        "sha256": "c4decad2647404c3de7bf825e606008d5795738eaa0d12d5d38451de748f1961",
+                        "version": "3.0.11.RELEASE"
+                    },
+                    {
+                        "name": "thymeleaf-extras-java8time",
+                        "sha256": "c07690c764329afd148a4134980d636911390a3fda45f6c6ae46517e4b4444d3",
+                        "version": "3.0.4.RELEASE"
+                    },
+                    {
+                        "name": "thymeleaf-spring5",
+                        "sha256": "c2effd0f4a27419a83bed98f08aab913d00dfa66255768f11821f48867789d73",
+                        "version": "3.0.11.RELEASE"
+                    },
+                    {
+                        "name": "tomcat-embed-core",
+                        "sha256": "b1415eecbc9f14e3745c1bfd41512a1b8e1af1332a7beaed4be30b2e0ba7b330",
+                        "version": "9.0.30"
+                    },
+                    {
+                        "name": "tomcat-embed-el",
+                        "sha256": "76255aed732a16de40eb1f48fc3c5350eb368d1a80f58a3a0a46170d149fe7eb",
+                        "version": "9.0.30"
+                    },
+                    {
+                        "name": "tomcat-embed-websocket",
+                        "sha256": "4ce32add19b34a80376edb1e1678c373cb720c28c7a0d37a4361bf659c2ea84c",
+                        "version": "9.0.30"
+                    },
+                    {
+                        "name": "txw2",
+                        "sha256": "4a6a9f483388d461b81aa9a28c685b8b74c0597993bf1884b04eddbca95f48fe",
+                        "version": "2.3.2"
+                    },
+                    {
+                        "name": "unbescape",
+                        "sha256": "597cf87d5b1a4f385b9d1cec974b7b483abb3ee85fc5b3f8b62af8e4bec95c2c",
+                        "version": "1.1.6.RELEASE"
+                    },
+                    {
+                        "name": "webjars-locator-core",
+                        "sha256": "124facce7dd08e1bcfa4c1c098e202badf77afb0ba5ba556fbe2ddee1e08b1f3",
+                        "version": "0.41"
+                    }
+                ],
+                "lib": "BOOT-INF/lib/",
+                "start-class": "org.springframework.samples.petclinic.PetClinicApplication",
+                "version": "2.2.4.RELEASE"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.springboot",
+                "version": "v1.2.13"
+            }
+        },
+        {
+            "name": "auto-reconfiguration",
+            "version": "2.11.0",
+            "metadata": {
+                "licenses": [
+                    {
+                        "type": "Apache-2.0",
+                        "uri": "https://github.com/cloudfoundry/java-buildpack-auto-reconfiguration/blob/master/LICENSE"
+                    }
+                ],
+                "name": "Spring Auto-reconfiguration",
+                "sha256": "46ab131165317d91fd4ad3186abf755222744e2d277dc413def06f3ad45ab150",
+                "stacks": [
+                    "io.buildpacks.stacks.bionic",
+                    "org.cloudfoundry.stacks.cflinuxfs3"
+                ],
+                "uri": "https://repo.spring.io/release/org/cloudfoundry/java-buildpack-auto-reconfiguration/2.11.0.RELEASE/java-buildpack-auto-reconfiguration-2.11.0.RELEASE.jar"
+            },
+            "buildpack": {
+                "id": "org.cloudfoundry.springautoreconfiguration",
+                "version": "v1.1.11"
+            }
+        }
+    ],
+    "launcher": {
+        "version": "0.6.1",
+        "source": {
+            "git": {
+                "repository": "https://github.com/buildpacks/lifecycle",
+                "commit": "d930835"
+            }
+        }
+    }
+}}
