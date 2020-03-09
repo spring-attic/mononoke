@@ -4,7 +4,25 @@ metadata:
   name: petclinic
 spec:
   template:
+    metadata:
+      labels:
+        app: petclinic
     spec:
       containers:
       - name: application
         image: scothis/petclinic
+        resources:
+          limits:
+            memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic
+spec:
+  selector:
+    app: petclinic
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080

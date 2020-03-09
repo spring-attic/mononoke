@@ -230,7 +230,7 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 		ChildType:     &appsv1.Deployment{},
 		ChildListType: &appsv1.DeploymentList{},
 
-		DesiredChild: func(parent *mononokev1alpha1.SpringBootApplication) (*appsv1.Deployment, error) {
+		DesiredChild: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) (*appsv1.Deployment, error) {
 			labels := controllers.MergeMaps(parent.Labels, map[string]string{
 				mononokev1alpha1.SpringBootApplicationLabelKey: parent.Name,
 			})
@@ -244,8 +244,11 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 				applicationContainer.Image = parent.Status.LatestImage
 			}
 
+			imageMetadata := controllers.RetrieveValue(ctx, ImageMetadataStashKey).(cnb.BuildMetadata)
+			bootMetadata := opinions.NewSpringBootBOMMetadata(imageMetadata)
+
 			// inject custom application properties
-			if parent.Status.ApplicationPropertiesRef != nil {
+			if bootMetadata.Classes != "" && parent.Status.ApplicationPropertiesRef != nil {
 				template.Spec.Volumes = append(template.Spec.Volumes, corev1.Volume{
 					// TODO(scothis) check for collisions
 					Name: "mononoke-properties",
@@ -256,15 +259,16 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 					},
 				})
 				applicationContainer.VolumeMounts = append(applicationContainer.VolumeMounts, corev1.VolumeMount{
-					Name:      "mononoke-properties",
-					MountPath: "/workspace/application-mononoke.properties",
+					Name: "mononoke-properties",
+					// TODO(scothis) verify this classpath entry is not a jar
+					MountPath: bootMetadata.ClassPath[0] + "/application-mononoke.properties",
 					SubPath:   "application.properties",
 					ReadOnly:  true,
 				})
 				// TODO(scothis) check for existing var
 				applicationContainer.Env = append(applicationContainer.Env, corev1.EnvVar{
 					Name:  "JAVA_OPTS",
-					Value: "-Dspring.main.additional-profiles=mononoke",
+					Value: "-Dspring.profiles.include=mononoke",
 				})
 			}
 
