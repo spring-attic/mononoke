@@ -60,8 +60,10 @@ func SpringBootApplicationResolveImageMetadata(c controllers.Config, registry cn
 	c.Log = c.Log.WithName("ResolveImageMetadata")
 	return &controllers.SyncReconciler{
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
-			ref := parent.Status.LatestImage
-			img, err := registry.GetImage(parent.Status.LatestImage)
+			// TODO(scothis) be smarter about which container to use
+			c := &parent.Spec.Template.Spec.Containers[0]
+			ref := c.Image
+			img, err := registry.GetImage(ref)
 			if err != nil {
 				return fmt.Errorf("failed to get image %s from registry: %w", ref, err)
 			}
@@ -70,6 +72,8 @@ func SpringBootApplicationResolveImageMetadata(c controllers.Config, registry cn
 				return fmt.Errorf("failed parse cnb metadata from image %s: %w", ref, err)
 			}
 			controllers.StashValue(ctx, ImageMetadataStashKey, md)
+			// TODO(scothis) update target container with digested image
+			// c.Image = ...
 			return nil
 		},
 
@@ -187,10 +191,6 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 			template.Labels = controllers.MergeMaps(template.Labels, labels)
 
 			applicationContainer := &template.Spec.Containers[0]
-
-			if parent.Status.LatestImage != "" {
-				applicationContainer.Image = parent.Status.LatestImage
-			}
 
 			// inject custom application properties
 			if parent.Status.ApplicationPropertiesRef != nil {

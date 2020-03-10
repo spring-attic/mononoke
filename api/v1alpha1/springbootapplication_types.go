@@ -50,10 +50,6 @@ type SpringBootApplicationStatus struct {
 
 	apis.Status `json:",inline"`
 
-	// LatestImage is the image being deployed
-	// +optional
-	LatestImage string `json:"latestImage"`
-
 	// AppliedOpinions lists opinions applied to the application
 	AppliedOpinions []string `json:"appliedOpinions,omitempty"`
 
