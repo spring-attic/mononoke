@@ -21,9 +21,7 @@ import (
 	"fmt"
 	"sort"
 
-	kpackbuildv1alpha1 "github.com/projectriff/system/pkg/apis/thirdparty/kpack/build/v1alpha1"
 	"github.com/projectriff/system/pkg/controllers"
-	"github.com/projectriff/system/pkg/tracker"
 	mononokev1alpha1 "github.com/spring-cloud-incubator/mononoke/api/v1alpha1"
 	"github.com/spring-cloud-incubator/mononoke/cnb"
 	"github.com/spring-cloud-incubator/mononoke/opinions"
@@ -32,14 +30,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // +kubebuilder:rbac:groups=apps.mononoke.local,resources=springbootapplications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps.mononoke.local,resources=springbootapplications/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=build.pivotal.io,resources=images,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch;delete
@@ -52,7 +46,6 @@ func SpringBootApplicationReconciler(c controllers.Config, registry cnb.Registry
 	return &controllers.ParentReconciler{
 		Type: &mononokev1alpha1.SpringBootApplication{},
 		SubReconcilers: []controllers.SubReconciler{
-			SpringBootApplicationResolveLatestImage(c),
 			SpringBootApplicationResolveImageMetadata(c, registry),
 			SpringBootApplicationApplyOpinions(c),
 			SpringBootApplicationChildApplicationPropertiesReconciler(c),
@@ -63,57 +56,15 @@ func SpringBootApplicationReconciler(c controllers.Config, registry cnb.Registry
 	}
 }
 
-func SpringBootApplicationResolveLatestImage(c controllers.Config) controllers.SubReconciler {
-	c.Log = c.Log.WithName("ResolveLatestImage")
-
-	return &controllers.SyncReconciler{
-		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
-			ref := parent.Spec.ImageRef
-
-			if ref == nil {
-				parent.Status.LatestImage = parent.Spec.Template.Spec.Containers[0].Image
-				return nil
-			}
-
-			// TODO(scothis) use a duck type based informer
-			switch {
-			case ref.APIVersion == "build.pivotal.io/v1alpha1" && ref.Kind == "Image":
-				var image kpackbuildv1alpha1.Image
-				key := types.NamespacedName{Namespace: parent.Namespace, Name: ref.Name}
-				// track image for new images
-				c.Tracker.Track(
-					tracker.NewKey(schema.GroupVersionKind{Group: "build.pivotal.io", Version: "v1alpha1", Kind: "Image"}, key),
-					types.NamespacedName{Namespace: parent.Namespace, Name: parent.Name},
-				)
-				if err := c.Get(ctx, key, &image); err != nil {
-					if apierrs.IsNotFound(err) {
-						return nil
-					}
-					return err
-				}
-				if image.Status.LatestImage != "" {
-					parent.Status.LatestImage = image.Status.LatestImage
-				}
-				return nil
-			}
-
-			return fmt.Errorf("unsupported image reference, must be a kpack image")
-		},
-
-		Config: c,
-		Setup: func(mgr controllers.Manager, bldr *controllers.Builder) error {
-			bldr.Watches(&source.Kind{Type: &kpackbuildv1alpha1.Image{}}, controllers.EnqueueTracked(&kpackbuildv1alpha1.Image{}, c.Tracker, c.Scheme))
-			return nil
-		},
-	}
-}
-
 func SpringBootApplicationResolveImageMetadata(c controllers.Config, registry cnb.Registry) controllers.SubReconciler {
 	c.Log = c.Log.WithName("ResolveImageMetadata")
 	return &controllers.SyncReconciler{
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
-			ref := parent.Status.LatestImage
-			img, err := registry.GetImage(parent.Status.LatestImage)
+			// TODO(scothis) be smarter about which container to use
+			applicationContainer := &parent.Spec.Template.Spec.Containers[0]
+
+			ref := applicationContainer.Image
+			img, err := registry.GetImage(ref)
 			if err != nil {
 				return fmt.Errorf("failed to get image %s from registry: %w", ref, err)
 			}
@@ -122,6 +73,8 @@ func SpringBootApplicationResolveImageMetadata(c controllers.Config, registry cn
 				return fmt.Errorf("failed parse cnb metadata from image %s: %w", ref, err)
 			}
 			controllers.StashValue(ctx, ImageMetadataStashKey, md)
+			// TODO(scothis) update target container with digested image
+			// applicationContainer.Image = ...
 			return nil
 		},
 
@@ -238,11 +191,8 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 			template := *parent.Spec.Template.DeepCopy()
 			template.Labels = controllers.MergeMaps(template.Labels, labels)
 
+			// TODO(scothis) be smarter about which container to use
 			applicationContainer := &template.Spec.Containers[0]
-
-			if parent.Status.LatestImage != "" {
-				applicationContainer.Image = parent.Status.LatestImage
-			}
 
 			imageMetadata := controllers.RetrieveValue(ctx, ImageMetadataStashKey).(cnb.BuildMetadata)
 			bootMetadata := opinions.NewSpringBootBOMMetadata(imageMetadata)

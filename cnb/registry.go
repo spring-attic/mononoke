@@ -16,5 +16,6 @@ func (r *Registry) GetImage(ref string) (ggcr.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+	// TODO add an LRU cache to avoid slamming the remote registry with requests
 	return remote.Image(parsed, remote.WithAuthFromKeychain(r.Keychain))
 }

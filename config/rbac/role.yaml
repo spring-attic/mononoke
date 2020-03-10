@@ -39,14 +39,6 @@ rules:
   - patch
   - update
 - apiGroups:
-  - build.pivotal.io
-  resources:
-  - images
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
   - ""
   resources:
   - configmaps
