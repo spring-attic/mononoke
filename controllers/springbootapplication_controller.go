@@ -61,8 +61,9 @@ func SpringBootApplicationResolveImageMetadata(c controllers.Config, registry cn
 	return &controllers.SyncReconciler{
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
 			// TODO(scothis) be smarter about which container to use
-			c := &parent.Spec.Template.Spec.Containers[0]
-			ref := c.Image
+			applicationContainer := &parent.Spec.Template.Spec.Containers[0]
+
+			ref := applicationContainer.Image
 			img, err := registry.GetImage(ref)
 			if err != nil {
 				return fmt.Errorf("failed to get image %s from registry: %w", ref, err)
@@ -73,7 +74,7 @@ func SpringBootApplicationResolveImageMetadata(c controllers.Config, registry cn
 			}
 			controllers.StashValue(ctx, ImageMetadataStashKey, md)
 			// TODO(scothis) update target container with digested image
-			// c.Image = ...
+			// applicationContainer.Image = ...
 			return nil
 		},
 
@@ -182,7 +183,7 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 		ChildType:     &appsv1.Deployment{},
 		ChildListType: &appsv1.DeploymentList{},
 
-		DesiredChild: func(parent *mononokev1alpha1.SpringBootApplication) (*appsv1.Deployment, error) {
+		DesiredChild: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) (*appsv1.Deployment, error) {
 			labels := controllers.MergeMaps(parent.Labels, map[string]string{
 				mononokev1alpha1.SpringBootApplicationLabelKey: parent.Name,
 			})
@@ -190,10 +191,14 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 			template := *parent.Spec.Template.DeepCopy()
 			template.Labels = controllers.MergeMaps(template.Labels, labels)
 
+			// TODO(scothis) be smarter about which container to use
 			applicationContainer := &template.Spec.Containers[0]
 
+			imageMetadata := controllers.RetrieveValue(ctx, ImageMetadataStashKey).(cnb.BuildMetadata)
+			bootMetadata := opinions.NewSpringBootBOMMetadata(imageMetadata)
+
 			// inject custom application properties
-			if parent.Status.ApplicationPropertiesRef != nil {
+			if bootMetadata.Classes != "" && parent.Status.ApplicationPropertiesRef != nil {
 				template.Spec.Volumes = append(template.Spec.Volumes, corev1.Volume{
 					// TODO(scothis) check for collisions
 					Name: "mononoke-properties",
@@ -204,15 +209,16 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 					},
 				})
 				applicationContainer.VolumeMounts = append(applicationContainer.VolumeMounts, corev1.VolumeMount{
-					Name:      "mononoke-properties",
-					MountPath: "/workspace/application-mononoke.properties",
+					Name: "mononoke-properties",
+					// TODO(scothis) verify this classpath entry is not a jar
+					MountPath: bootMetadata.ClassPath[0] + "/application-mononoke.properties",
 					SubPath:   "application.properties",
 					ReadOnly:  true,
 				})
 				// TODO(scothis) check for existing var
 				applicationContainer.Env = append(applicationContainer.Env, corev1.EnvVar{
 					Name:  "JAVA_OPTS",
-					Value: "-Dspring.main.additional-profiles=mononoke",
+					Value: "-Dspring.profiles.include=mononoke",
 				})
 			}
 
