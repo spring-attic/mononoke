@@ -30,7 +30,7 @@ import (
 
 var SpringBoot = Opinions{
 	{
-		Id: "spring-graceful-shutdown",
+		Id: "spring-boot-graceful-shutdown",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			// TODO(scothis) only apply to Boot 2.3+
@@ -140,7 +140,7 @@ var SpringBoot = Opinions{
 	},
 	{
 		// fallback if spring-boot-actuator-probes is not applied
-		Id: "spring-boot-probes",
+		Id: "spring-web-probes",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			return !applied.Has("spring-boot-actuator-probes") && applied.Has("spring-web-port")
 		},
