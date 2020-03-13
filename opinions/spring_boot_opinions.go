@@ -19,6 +19,8 @@ package opinions
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/spring-cloud-incubator/mononoke/cnb"
@@ -27,6 +29,33 @@ import (
 )
 
 var SpringBoot = Opinions{
+	{
+		Id: "spring-graceful-shutdown",
+		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			// TODO(scothis) only apply to Boot 2.3+
+			return bootMetadata.HasDependency("spring-boot-starter-tomcat") ||
+				bootMetadata.HasDependency("spring-boot-starter-jetty") ||
+				bootMetadata.HasDependency("spring-boot-starter-reactor-netty") ||
+				bootMetadata.HasDependency("spring-boot-starter-undertow")
+		},
+		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+			applicationProperties := SpringApplicationProperties(ctx)
+			if _, ok := applicationProperties["server.shutdown.grace-period"]; ok {
+				// boot grace period already defined, skipping
+				return nil
+			}
+			var k8sGracePeriodSeconds int64 = 30 // default k8s grace period is 30 seconds
+			if podSpec.Spec.TerminationGracePeriodSeconds != nil {
+				k8sGracePeriodSeconds = *podSpec.Spec.TerminationGracePeriodSeconds
+			}
+			podSpec.Spec.TerminationGracePeriodSeconds = &k8sGracePeriodSeconds
+			// allocate 80% of the k8s grace period to boot
+			bootGracePeriodSeconds := int(math.Floor(0.8 * float64(k8sGracePeriodSeconds)))
+			applicationProperties["server.shutdown.grace-period"] = fmt.Sprintf("%ds", bootGracePeriodSeconds)
+			return nil
+		},
+	},
 	{
 		Id: "spring-web-port",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
