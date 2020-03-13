@@ -95,7 +95,7 @@ var SpringBoot = Opinions{
 		},
 	},
 	{
-		Id: "spring-boot-actuator-probes",
+		Id: "spring-boot-actuator",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-boot-actuator")
@@ -104,16 +104,36 @@ var SpringBoot = Opinions{
 			applicationProperties := SpringApplicationProperties(ctx)
 
 			// TODO check for an existing value before clobbering
-			managementPort := 9001
-
-			applicationProperties["management.server.port"] = strconv.Itoa(managementPort)
+			applicationProperties["management.server.port"] = strconv.Itoa(9001)
 			applicationProperties["management.server.ssl.enabled"] = "false"
 			applicationProperties["management.endpoint.health.enabled"] = "true"
 			applicationProperties["management.endpoint.info.enabled"] = "true"
+			applicationProperties["management.endpoints.web.base-path"] = "/actuator"
 
-			// TODO check for an existing value before clobbering
-			managementBasePath := "/actuator"
-			applicationProperties["management.endpoints.web.base-path"] = managementBasePath
+			if podSpec.Annotations == nil {
+				podSpec.Annotations = map[string]string{}
+			}
+			podSpec.Annotations["boot.spring.io/actuator"] = fmt.Sprintf("http://:%s%s",
+				applicationProperties["management.server.port"],
+				applicationProperties["management.endpoints.web.base-path"],
+			)
+
+			return nil
+		},
+	},
+	{
+		Id: "spring-boot-actuator-probes",
+		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+			return applied.Has("spring-boot-actuator")
+		},
+		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+			applicationProperties := SpringApplicationProperties(ctx)
+
+			managementPort, err := strconv.Atoi(applicationProperties["management.server.port"])
+			if err != nil {
+				return err
+			}
+			managementBasePath := applicationProperties["management.endpoints.web.base-path"]
 
 			// TODO be smarter about resolving the correct container
 			c := &podSpec.Spec.Containers[0]
