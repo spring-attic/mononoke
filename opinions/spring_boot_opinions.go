@@ -30,6 +30,25 @@ import (
 
 var SpringBoot = Opinions{
 	{
+		Id: "spring-boot",
+		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			return bootMetadata.HasDependency("spring-boot")
+		},
+		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			if podSpec.Labels == nil {
+				podSpec.Labels = map[string]string{}
+			}
+			for _, d := range bootMetadata.Dependencies {
+				if d.Name == "spring-boot" {
+					podSpec.Labels["boot.spring.io/version"] = d.Version
+				}
+			}
+			return nil
+		},
+	},
+	{
 		Id: "spring-boot-graceful-shutdown",
 		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
