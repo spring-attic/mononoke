@@ -40,7 +40,7 @@ func (os Opinions) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, i
 		podSpec.Labels = map[string]string{}
 	}
 	for _, o := range os {
-		if o.Applicable == nil || o.Applicable(applied, imageMetadata) {
+		if o.Applicable(applied, imageMetadata) {
 			applied = append(applied, o.GetId())
 			if err := o.Apply(ctx, podSpec, imageMetadata); err != nil {
 				return nil, err
@@ -72,6 +72,9 @@ func (o *BasicOpinion) GetId() string {
 }
 
 func (o *BasicOpinion) Applicable(applied AppliedOpinions, metadata cnb.BuildMetadata) bool {
+	if o.ApplicableFunc == nil {
+		return true
+	}
 	return o.ApplicableFunc(applied, metadata)
 }
 
