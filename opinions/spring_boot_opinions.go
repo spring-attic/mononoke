@@ -238,7 +238,7 @@ var SpringBoot = Opinions{
 	// service intents
 	&SpringBootServiceIntent{
 		Id:        "service-intent-mysql",
-		LabelName: "services.monononoke.local/mysql",
+		LabelName: "services.mononoke.local/mysql",
 		Dependencies: sets.NewString(
 			"mysql-connector-java",
 			"r2dbc-mysql",
@@ -246,7 +246,7 @@ var SpringBoot = Opinions{
 	},
 	&SpringBootServiceIntent{
 		Id:        "service-intent-postgres",
-		LabelName: "services.monononoke.local/postgres",
+		LabelName: "services.mononoke.local/postgres",
 		Dependencies: sets.NewString(
 			"postgresql",
 			"r2dbc-postgresql",
@@ -254,21 +254,21 @@ var SpringBoot = Opinions{
 	},
 	&SpringBootServiceIntent{
 		Id:        "service-intent-mongodb",
-		LabelName: "services.monononoke.local/mongodb",
+		LabelName: "services.mononoke.local/mongodb",
 		Dependencies: sets.NewString(
 			"mongodb-driver-core",
 		),
 	},
 	&SpringBootServiceIntent{
 		Id:        "service-intent-rabbitmq",
-		LabelName: "services.monononoke.local/rabbitmq",
+		LabelName: "services.mononoke.local/rabbitmq",
 		Dependencies: sets.NewString(
 			"amqp-client",
 		),
 	},
 	&SpringBootServiceIntent{
 		Id:        "service-intent-redis",
-		LabelName: "services.monononoke.local/redis",
+		LabelName: "services.mononoke.local/redis",
 		Dependencies: sets.NewString(
 			"jedis",
 		),
