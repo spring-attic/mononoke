@@ -73,16 +73,47 @@ func main() {
 		os.Exit(1)
 	}
 
+	//todo: keychain w/ configured secrets
+	registry := cnb.Registry{Keychain: authn.DefaultKeychain}
+
+	if err = mononokecontrollers.NodeJsApplicationReconciler(
+		controllers.Config{
+			Client:    mgr.GetClient(),
+			APIReader: mgr.GetAPIReader(),
+			Recorder:  mgr.GetEventRecorderFor("NodeJsApplication"),
+			Tracker:   tracker.New(syncPeriod, ctrl.Log.WithName("controllers").WithName("NodeJsApplication").WithName("tracker")),
+			Log:       ctrl.Log.WithName("controllers").WithName("NodeJsApplication"),
+			Scheme:    mgr.GetScheme(),
+		},
+		registry,
+	).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "NodeJsApplication")
+		os.Exit(1)
+	}
+	if err = mononokecontrollers.RailsApplicationReconciler(
+		controllers.Config{
+			Client:    mgr.GetClient(),
+			APIReader: mgr.GetAPIReader(),
+			Recorder:  mgr.GetEventRecorderFor("RailsApplication"),
+			Tracker:   tracker.New(syncPeriod, ctrl.Log.WithName("controllers").WithName("RailsApplication").WithName("tracker")),
+			Log:       ctrl.Log.WithName("controllers").WithName("RailsApplication"),
+			Scheme:    mgr.GetScheme(),
+		},
+		registry,
+	).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "RailsApplication")
+		os.Exit(1)
+	}
 	if err = mononokecontrollers.SpringBootApplicationReconciler(
 		controllers.Config{
 			Client:    mgr.GetClient(),
 			APIReader: mgr.GetAPIReader(),
 			Recorder:  mgr.GetEventRecorderFor("SpringBootApplication"),
-			Tracker:   tracker.New(syncPeriod, ctrl.Log.WithName("controllers").WithName("Deployer").WithName("tracker")),
+			Tracker:   tracker.New(syncPeriod, ctrl.Log.WithName("controllers").WithName("SpringBootApplication").WithName("tracker")),
 			Log:       ctrl.Log.WithName("controllers").WithName("SpringBootApplication"),
 			Scheme:    mgr.GetScheme(),
 		},
-		cnb.Registry{Keychain: authn.DefaultKeychain}, //todo: keychain w/ configured secrets
+		registry,
 	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "SpringBootApplication")
 		os.Exit(1)

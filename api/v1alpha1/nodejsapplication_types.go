@@ -23,28 +23,24 @@ import (
 )
 
 var (
-	SpringBootApplicationLabelKey = GroupVersion.Group + "/springboot-application"
+	NodeJsApplicationLabelKey = GroupVersion.Group + "/nodejs-application"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// SpringBootApplicationSpec defines the desired state of SpringBootApplication
-type SpringBootApplicationSpec struct {
+// NodeJsApplicationSpec defines the desired state of NodeJsApplication
+type NodeJsApplicationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Template pod
 	// +optional
 	Template *corev1.PodTemplateSpec `json:"template,omitempty"`
-
-	// ApplicationProperties to be included in the target application container
-	// +optional
-	ApplicationProperties map[string]string `json:"applicationProperties,omitempty"`
 }
 
-// SpringBootApplicationStatus defines the observed state of SpringBootApplication
-type SpringBootApplicationStatus struct {
+// NodeJsApplicationStatus defines the observed state of NodeJsApplication
+type NodeJsApplicationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -52,10 +48,6 @@ type SpringBootApplicationStatus struct {
 
 	// AppliedOpinions lists opinions applied to the application
 	AppliedOpinions []string `json:"appliedOpinions,omitempty"`
-
-	// ApplicationPropertiesRef is the ConfigMap holding the application properties
-	// +optional
-	ApplicationPropertiesRef *corev1.LocalObjectReference `json:"applicationPropertiesRef,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -65,28 +57,28 @@ type SpringBootApplicationStatus struct {
 // +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.conditions[?(@.type=="Ready")].reason`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
-// SpringBootApplication is the Schema for the springbootapplications API
-type SpringBootApplication struct {
+// NodeJsApplication is the Schema for the nodejsapplications API
+type NodeJsApplication struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SpringBootApplicationSpec   `json:"spec,omitempty"`
-	Status SpringBootApplicationStatus `json:"status,omitempty"`
+	Spec   NodeJsApplicationSpec   `json:"spec,omitempty"`
+	Status NodeJsApplicationStatus `json:"status,omitempty"`
 }
 
-func (a *SpringBootApplication) GetStatus() apis.ResourceStatus {
+func (a *NodeJsApplication) GetStatus() apis.ResourceStatus {
 	return &a.Status
 }
 
 // +kubebuilder:object:root=true
 
-// SpringBootApplicationList contains a list of SpringBootApplication
-type SpringBootApplicationList struct {
+// NodeJsApplicationList contains a list of NodeJsApplication
+type NodeJsApplicationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []SpringBootApplication `json:"items"`
+	Items           []NodeJsApplication `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&SpringBootApplication{}, &SpringBootApplicationList{})
+	SchemeBuilder.Register(&NodeJsApplication{}, &NodeJsApplicationList{})
 }

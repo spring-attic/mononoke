@@ -1,0 +1,24 @@
+# permissions for end users to edit nodejsapplications.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nodejsapplication-editor-role
+rules:
+- apiGroups:
+  - apps.mononoke.local
+  resources:
+  - nodejsapplications
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.mononoke.local
+  resources:
+  - nodejsapplications/status
+  verbs:
+  - get

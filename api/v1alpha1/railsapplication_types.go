@@ -23,28 +23,24 @@ import (
 )
 
 var (
-	SpringBootApplicationLabelKey = GroupVersion.Group + "/springboot-application"
+	RailsApplicationLabelKey = GroupVersion.Group + "/rails-application"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// SpringBootApplicationSpec defines the desired state of SpringBootApplication
-type SpringBootApplicationSpec struct {
+// RailsApplicationSpec defines the desired state of RailsApplication
+type RailsApplicationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Template pod
 	// +optional
 	Template *corev1.PodTemplateSpec `json:"template,omitempty"`
-
-	// ApplicationProperties to be included in the target application container
-	// +optional
-	ApplicationProperties map[string]string `json:"applicationProperties,omitempty"`
 }
 
-// SpringBootApplicationStatus defines the observed state of SpringBootApplication
-type SpringBootApplicationStatus struct {
+// RailsApplicationStatus defines the observed state of RailsApplication
+type RailsApplicationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -65,28 +61,28 @@ type SpringBootApplicationStatus struct {
 // +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.conditions[?(@.type=="Ready")].reason`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
-// SpringBootApplication is the Schema for the springbootapplications API
-type SpringBootApplication struct {
+// RailsApplication is the Schema for the railsapplications API
+type RailsApplication struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SpringBootApplicationSpec   `json:"spec,omitempty"`
-	Status SpringBootApplicationStatus `json:"status,omitempty"`
+	Spec   RailsApplicationSpec   `json:"spec,omitempty"`
+	Status RailsApplicationStatus `json:"status,omitempty"`
 }
 
-func (a *SpringBootApplication) GetStatus() apis.ResourceStatus {
+func (a *RailsApplication) GetStatus() apis.ResourceStatus {
 	return &a.Status
 }
 
 // +kubebuilder:object:root=true
 
-// SpringBootApplicationList contains a list of SpringBootApplication
-type SpringBootApplicationList struct {
+// RailsApplicationList contains a list of RailsApplication
+type RailsApplicationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []SpringBootApplication `json:"items"`
+	Items           []RailsApplication `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&SpringBootApplication{}, &SpringBootApplicationList{})
+	SchemeBuilder.Register(&RailsApplication{}, &RailsApplicationList{})
 }

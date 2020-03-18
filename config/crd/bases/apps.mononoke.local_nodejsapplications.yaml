@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.4
   creationTimestamp: null
-  name: springbootapplications.apps.mononoke.local
+  name: nodejsapplications.apps.mononoke.local
 spec:
   additionalPrinterColumns:
   - JSONPath: .status.conditions[?(@.type=="Ready")].status
@@ -22,17 +22,16 @@ spec:
   names:
     categories:
     - mononoke
-    kind: SpringBootApplication
-    listKind: SpringBootApplicationList
-    plural: springbootapplications
-    singular: springbootapplication
+    kind: NodeJsApplication
+    listKind: NodeJsApplicationList
+    plural: nodejsapplications
+    singular: nodejsapplication
   scope: Namespaced
   subresources:
     status: {}
   validation:
     openAPIV3Schema:
-      description: SpringBootApplication is the Schema for the springbootapplications
-        API
+      description: NodeJsApplication is the Schema for the nodejsapplications API
       properties:
         apiVersion:
           description: APIVersion defines the versioned schema of this representation
@@ -45,14 +44,8 @@ spec:
         metadata:
           type: object
         spec:
-          description: SpringBootApplicationSpec defines the desired state of SpringBootApplication
+          description: NodeJsApplicationSpec defines the desired state of NodeJsApplication
           properties:
-            applicationProperties:
-              additionalProperties:
-                type: string
-              description: ApplicationProperties to be included in the target application
-                container
-              type: object
             template:
               description: Template pod
               properties:
@@ -4510,16 +4503,8 @@ spec:
               type: object
           type: object
         status:
-          description: SpringBootApplicationStatus defines the observed state of SpringBootApplication
+          description: NodeJsApplicationStatus defines the observed state of NodeJsApplication
           properties:
-            applicationPropertiesRef:
-              description: ApplicationPropertiesRef is the ConfigMap holding the application
-                properties
-              properties:
-                name:
-                  description: 'Name of the referent. More info: https://kubernetes.'
-                  type: string
-              type: object
             appliedOpinions:
               description: AppliedOpinions lists opinions applied to the application
               items:

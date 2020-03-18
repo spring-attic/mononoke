@@ -38,8 +38,6 @@ import (
 // +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch;delete
 
-const ImageMetadataStashKey controllers.StashKey = "image-metadata"
-
 func SpringBootApplicationReconciler(c controllers.Config, registry cnb.Registry) *controllers.ParentReconciler {
 	c.Log = c.Log.WithName("SpringBootApplication")
 
