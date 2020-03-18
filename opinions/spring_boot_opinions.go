@@ -26,39 +26,40 @@ import (
 	"github.com/spring-cloud-incubator/mononoke/cnb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 var SpringBoot = Opinions{
-	{
+	&BasicOpinion{
 		Id: "spring-boot",
-		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-boot")
 		},
-		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
-			if podSpec.Labels == nil {
-				podSpec.Labels = map[string]string{}
-			}
 			for _, d := range bootMetadata.Dependencies {
 				if d.Name == "spring-boot" {
 					podSpec.Labels["boot.spring.io/version"] = d.Version
+					break
 				}
 			}
 			return nil
 		},
 	},
-	{
+	&BasicOpinion{
 		Id: "spring-boot-graceful-shutdown",
-		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			// TODO(scothis) only apply to Boot 2.3+
-			return bootMetadata.HasDependency("spring-boot-starter-tomcat") ||
-				bootMetadata.HasDependency("spring-boot-starter-jetty") ||
-				bootMetadata.HasDependency("spring-boot-starter-reactor-netty") ||
-				bootMetadata.HasDependency("spring-boot-starter-undertow")
+			return bootMetadata.HasDependency(
+				"spring-boot-starter-tomcat",
+				"spring-boot-starter-jetty",
+				"spring-boot-starter-reactor-netty",
+				"spring-boot-starter-undertow",
+			)
 		},
-		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 			if _, ok := applicationProperties["server.shutdown.grace-period"]; ok {
 				// boot grace period already defined, skipping
@@ -75,13 +76,13 @@ var SpringBoot = Opinions{
 			return nil
 		},
 	},
-	{
+	&BasicOpinion{
 		Id: "spring-web-port",
-		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-web")
 		},
-		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 			// TODO be smarter about resolving the correct container
 			c := &podSpec.Spec.Containers[0]
@@ -94,13 +95,13 @@ var SpringBoot = Opinions{
 			return nil
 		},
 	},
-	{
+	&BasicOpinion{
 		Id: "spring-boot-actuator",
-		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-boot-actuator")
 		},
-		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 
 			// TODO check for an existing value before clobbering
@@ -110,9 +111,6 @@ var SpringBoot = Opinions{
 			applicationProperties["management.endpoint.info.enabled"] = "true"
 			applicationProperties["management.endpoints.web.base-path"] = "/actuator"
 
-			if podSpec.Annotations == nil {
-				podSpec.Annotations = map[string]string{}
-			}
 			podSpec.Annotations["boot.spring.io/actuator"] = fmt.Sprintf("http://:%s%s",
 				applicationProperties["management.server.port"],
 				applicationProperties["management.endpoints.web.base-path"],
@@ -121,12 +119,12 @@ var SpringBoot = Opinions{
 			return nil
 		},
 	},
-	{
+	&BasicOpinion{
 		Id: "spring-boot-actuator-probes",
-		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			return applied.Has("spring-boot-actuator")
 		},
-		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 
 			managementPort, err := strconv.Atoi(applicationProperties["management.server.port"])
@@ -177,13 +175,13 @@ var SpringBoot = Opinions{
 			return nil
 		},
 	},
-	{
+	&BasicOpinion{
 		// fallback if spring-boot-actuator-probes is not applied
 		Id: "spring-web-probes",
-		Applicable: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
+		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			return !applied.Has("spring-boot-actuator-probes") && applied.Has("spring-web-port")
 		},
-		Apply: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 
 			if _, ok := applicationProperties["server.port"]; !ok {
@@ -236,6 +234,46 @@ var SpringBoot = Opinions{
 			return nil
 		},
 	},
+
+	// service intents
+	&SpringBootServiceIntent{
+		Id:        "service-intent-mysql",
+		LabelName: "services.monononoke.local/mysql",
+		Dependencies: sets.NewString(
+			"mysql-connector-java",
+			"r2dbc-mysql",
+		),
+	},
+	&SpringBootServiceIntent{
+		Id:        "service-intent-postgres",
+		LabelName: "services.monononoke.local/postgres",
+		Dependencies: sets.NewString(
+			"postgresql",
+			"r2dbc-postgresql",
+		),
+	},
+	&SpringBootServiceIntent{
+		Id:        "service-intent-mongodb",
+		LabelName: "services.monononoke.local/mongodb",
+		Dependencies: sets.NewString(
+			"mongodb-driver-core",
+		),
+	},
+	&SpringBootServiceIntent{
+		Id:        "service-intent-rabbitmq",
+		LabelName: "services.monononoke.local/rabbitmq",
+		Dependencies: sets.NewString(
+			"amqp-client",
+		),
+	},
+	&SpringBootServiceIntent{
+		Id:        "service-intent-redis",
+		LabelName: "services.monononoke.local/redis",
+		Dependencies: sets.NewString(
+			"jedis",
+		),
+	},
+
 	// TODO add a whole lot more opinions
 }
 
@@ -257,9 +295,10 @@ type SpringBootBOMMetadata struct {
 	Dependencies []SpringBootBOMMetadataDependency `json:"dependencies"`
 }
 
-func (m *SpringBootBOMMetadata) HasDependency(name string) bool {
-	for _, dep := range m.Dependencies {
-		if dep.Name == name {
+func (m *SpringBootBOMMetadata) HasDependency(names ...string) bool {
+	n := sets.NewString(names...)
+	for _, d := range m.Dependencies {
+		if n.Has(d.Name) {
 			return true
 		}
 	}
@@ -282,6 +321,38 @@ func SpringApplicationProperties(ctx context.Context) map[string]string {
 	value := ctx.Value(springApplicationPropertiesKey{})
 	if props, ok := value.(map[string]string); ok {
 		return props
+	}
+	return nil
+}
+
+type SpringBootServiceIntent struct {
+	Id           string
+	LabelName    string
+	Dependencies sets.String
+}
+
+func (o *SpringBootServiceIntent) GetId() string {
+	return o.Id
+}
+
+func (o *SpringBootServiceIntent) Applicable(applied AppliedOpinions, metadata cnb.BuildMetadata) bool {
+	bootMetadata := NewSpringBootBOMMetadata(metadata)
+	for _, d := range bootMetadata.Dependencies {
+		if o.Dependencies.Has(d.Name) {
+			return true
+		}
+	}
+	return false
+}
+
+func (o *SpringBootServiceIntent) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, metadata cnb.BuildMetadata) error {
+	bootMetadata := NewSpringBootBOMMetadata(metadata)
+	for _, d := range bootMetadata.Dependencies {
+		if o.Dependencies.Has(d.Name) {
+			podSpec.Labels[o.LabelName] = d.Name
+			podSpec.Labels[fmt.Sprintf("%s-version", o.LabelName)] = d.Version
+			break
+		}
 	}
 	return nil
 }

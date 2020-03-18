@@ -23,19 +23,25 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-type Opinion struct {
-	Id         string
-	Applicable func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool
-	Apply      func(ctx context.Context, podSpec *corev1.PodTemplateSpec, metadata cnb.BuildMetadata) error
+type Opinion interface {
+	GetId() string
+	Applicable(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool
+	Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, metadata cnb.BuildMetadata) error
 }
 
 type Opinions []Opinion
 
 func (os Opinions) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) ([]string, error) {
 	applied := AppliedOpinions{}
+	if podSpec.Annotations == nil {
+		podSpec.Annotations = map[string]string{}
+	}
+	if podSpec.Labels == nil {
+		podSpec.Labels = map[string]string{}
+	}
 	for _, o := range os {
-		if o.Applicable == nil || o.Applicable(applied, imageMetadata) {
-			applied = append(applied, o.Id)
+		if o.Applicable(applied, imageMetadata) {
+			applied = append(applied, o.GetId())
 			if err := o.Apply(ctx, podSpec, imageMetadata); err != nil {
 				return nil, err
 			}
@@ -53,4 +59,25 @@ func (os AppliedOpinions) Has(id string) bool {
 		}
 	}
 	return false
+}
+
+type BasicOpinion struct {
+	Id             string
+	ApplicableFunc func(applied AppliedOpinions, metadata cnb.BuildMetadata) bool
+	ApplyFunc      func(ctx context.Context, podSpec *corev1.PodTemplateSpec, metadata cnb.BuildMetadata) error
+}
+
+func (o *BasicOpinion) GetId() string {
+	return o.Id
+}
+
+func (o *BasicOpinion) Applicable(applied AppliedOpinions, metadata cnb.BuildMetadata) bool {
+	if o.ApplicableFunc == nil {
+		return true
+	}
+	return o.ApplicableFunc(applied, metadata)
+}
+
+func (o *BasicOpinion) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, metadata cnb.BuildMetadata) error {
+	return o.ApplyFunc(ctx, podSpec, metadata)
 }
