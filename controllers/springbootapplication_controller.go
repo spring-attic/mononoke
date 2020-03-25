@@ -61,7 +61,8 @@ func SpringBootApplicationResolveImageMetadata(c controllers.Config, registry cn
 	return &controllers.SyncReconciler{
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
 			// TODO(scothis) be smarter about which container to use
-			applicationContainer := &parent.Spec.Template.Spec.Containers[0]
+			containerIdx := 0
+			applicationContainer := &parent.Spec.Template.Spec.Containers[containerIdx]
 
 			ref := applicationContainer.Image
 			img, err := registry.GetImage(ref)
@@ -89,7 +90,9 @@ func SpringBootApplicationApplyOpinions(c controllers.Config) controllers.SubRec
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
 			ctx = opinions.StashSpringApplicationProperties(ctx, parent.Spec.ApplicationProperties)
 			imageMetadata := controllers.RetrieveValue(ctx, ImageMetadataStashKey).(cnb.BuildMetadata)
-			applied, err := opinions.SpringBoot.Apply(ctx, parent.Spec.Template, imageMetadata)
+			// TODO be smarter about which container to use
+			containerIdx := 0
+			applied, err := opinions.SpringBoot.Apply(ctx, parent.Spec.Template, containerIdx, imageMetadata)
 			if err != nil {
 				return err
 			}
