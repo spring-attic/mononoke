@@ -36,7 +36,7 @@ var SpringBoot = Opinions{
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-boot")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			for _, d := range bootMetadata.Dependencies {
 				if d.Name == "spring-boot" {
@@ -59,7 +59,7 @@ var SpringBoot = Opinions{
 				"spring-boot-starter-undertow",
 			)
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 			if _, ok := applicationProperties["server.shutdown.grace-period"]; ok {
 				// boot grace period already defined, skipping
@@ -82,10 +82,9 @@ var SpringBoot = Opinions{
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-web")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
-			// TODO be smarter about resolving the correct container
-			c := &podSpec.Spec.Containers[0]
+			c := &podSpec.Spec.Containers[containerIdx]
 			// TODO check for an existing port before clobbering
 			c.Ports = append(c.Ports, corev1.ContainerPort{
 				ContainerPort: 8080,
@@ -101,7 +100,7 @@ var SpringBoot = Opinions{
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-boot-actuator")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 
 			// TODO check for an existing value before clobbering
@@ -124,7 +123,7 @@ var SpringBoot = Opinions{
 		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			return applied.Has("spring-boot-actuator")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 
 			managementPort, err := strconv.Atoi(applicationProperties["management.server.port"])
@@ -133,8 +132,7 @@ var SpringBoot = Opinions{
 			}
 			managementBasePath := applicationProperties["management.endpoints.web.base-path"]
 
-			// TODO be smarter about resolving the correct container
-			c := &podSpec.Spec.Containers[0]
+			c := &podSpec.Spec.Containers[containerIdx]
 
 			// define probes
 			if c.StartupProbe == nil {
@@ -181,7 +179,7 @@ var SpringBoot = Opinions{
 		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			return !applied.Has("spring-boot-actuator-probes") && applied.Has("spring-web-port")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := SpringApplicationProperties(ctx)
 
 			if _, ok := applicationProperties["server.port"]; !ok {
@@ -194,8 +192,7 @@ var SpringBoot = Opinions{
 				return err
 			}
 
-			// TODO be smarter about resolving the correct container
-			c := &podSpec.Spec.Containers[0]
+			c := &podSpec.Spec.Containers[containerIdx]
 
 			// define probes
 			if c.StartupProbe == nil {
@@ -345,7 +342,7 @@ func (o *SpringBootServiceIntent) Applicable(applied AppliedOpinions, metadata c
 	return false
 }
 
-func (o *SpringBootServiceIntent) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, metadata cnb.BuildMetadata) error {
+func (o *SpringBootServiceIntent) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, metadata cnb.BuildMetadata) error {
 	bootMetadata := NewSpringBootBOMMetadata(metadata)
 	for _, d := range bootMetadata.Dependencies {
 		if o.Dependencies.Has(d.Name) {
