@@ -81,3 +81,14 @@ func (o *BasicOpinion) Applicable(applied AppliedOpinions, metadata cnb.BuildMet
 func (o *BasicOpinion) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, metadata cnb.BuildMetadata) error {
 	return o.ApplyFunc(ctx, podSpec, containerIdx, metadata)
 }
+
+func findContainerPort(ps corev1.PodSpec, port int32) (string, *corev1.ContainerPort) {
+	for _, c := range ps.Containers {
+		for _, p := range c.Ports {
+			if p.ContainerPort == port {
+				return c.Name, &p
+			}
+		}
+	}
+	return "", nil
+}

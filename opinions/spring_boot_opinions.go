@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/spring-cloud-incubator/mononoke/cnb"
 	corev1 "k8s.io/api/core/v1"
@@ -38,6 +39,7 @@ var SpringBoot = Opinions{
 		},
 		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			podSpec.Labels["apps.mononoke.local/framework"] = "spring-boot"
 			for _, d := range bootMetadata.Dependencies {
 				if d.Name == "spring-boot" {
 					podSpec.Labels["boot.spring.io/version"] = d.Version
@@ -51,7 +53,6 @@ var SpringBoot = Opinions{
 		Id: "spring-boot-graceful-shutdown",
 		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
-			// TODO(scothis) only apply to Boot 2.3+
 			return bootMetadata.HasDependency(
 				"spring-boot-starter-tomcat",
 				"spring-boot-starter-jetty",
@@ -60,9 +61,9 @@ var SpringBoot = Opinions{
 			)
 		},
 		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
-			applicationProperties := SpringApplicationProperties(ctx)
+			applicationProperties := GetSpringApplicationProperties(ctx)
 			if _, ok := applicationProperties["server.shutdown.grace-period"]; ok {
-				// boot grace period already defined, skipping
+				// boot grace period is already defined, skipping
 				return nil
 			}
 			var k8sGracePeriodSeconds int64 = 30 // default k8s grace period is 30 seconds
@@ -83,14 +84,26 @@ var SpringBoot = Opinions{
 			return bootMetadata.HasDependency("spring-web")
 		},
 		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
-			applicationProperties := SpringApplicationProperties(ctx)
+			applicationProperties := GetSpringApplicationProperties(ctx)
+
+			serverPort := applicationProperties.Default("server.port", "8080")
+			port, err := strconv.Atoi(serverPort)
+			if err != nil {
+				return err
+			}
+
 			c := &podSpec.Spec.Containers[containerIdx]
-			// TODO check for an existing port before clobbering
-			c.Ports = append(c.Ports, corev1.ContainerPort{
-				ContainerPort: 8080,
-				Protocol:      corev1.ProtocolTCP,
-			})
-			applicationProperties["server.port"] = "8080"
+
+			if name, cp := findContainerPort(podSpec.Spec, int32(port)); cp == nil {
+				c.Ports = append(c.Ports, corev1.ContainerPort{
+					ContainerPort: int32(port),
+					Protocol:      corev1.ProtocolTCP,
+				})
+			} else if name != c.Name {
+				// port is in use by a different container
+				return fmt.Errorf("desired port %s is in use by container %q, set 'server.port' boot property to an open port", serverPort, name)
+			}
+
 			return nil
 		},
 	},
@@ -101,19 +114,16 @@ var SpringBoot = Opinions{
 			return bootMetadata.HasDependency("spring-boot-actuator")
 		},
 		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
-			applicationProperties := SpringApplicationProperties(ctx)
+			applicationProperties := GetSpringApplicationProperties(ctx)
 
-			// TODO check for an existing value before clobbering
-			applicationProperties["management.server.port"] = strconv.Itoa(9001)
-			applicationProperties["management.server.ssl.enabled"] = "false"
-			applicationProperties["management.endpoint.health.enabled"] = "true"
-			applicationProperties["management.endpoint.info.enabled"] = "true"
-			applicationProperties["management.endpoints.web.base-path"] = "/actuator"
+			managementPort := applicationProperties.Default("management.server.port", applicationProperties["server.port"])
+			managementBasePath := applicationProperties.Default("management.endpoints.web.base-path", "/actuator")
+			managementScheme := corev1.URISchemeHTTP
+			if applicationProperties["management.server.ssl.enabled"] == "true" {
+				managementScheme = corev1.URISchemeHTTPS
+			}
 
-			podSpec.Annotations["boot.spring.io/actuator"] = fmt.Sprintf("http://:%s%s",
-				applicationProperties["management.server.port"],
-				applicationProperties["management.endpoints.web.base-path"],
-			)
+			podSpec.Annotations["boot.spring.io/actuator"] = fmt.Sprintf("%s://:%s%s", strings.ToLower(string(managementScheme)), managementPort, managementBasePath)
 
 			return nil
 		},
@@ -124,106 +134,55 @@ var SpringBoot = Opinions{
 			return applied.Has("spring-boot-actuator")
 		},
 		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
-			applicationProperties := SpringApplicationProperties(ctx)
+			applicationProperties := GetSpringApplicationProperties(ctx)
 
+			if v := applicationProperties.Default("management.health.probes.enabled", "true"); v != "true" {
+				// management health probes were disabled by the user, skip
+				return nil
+			}
+
+			managementBasePath := applicationProperties["management.endpoints.web.base-path"]
 			managementPort, err := strconv.Atoi(applicationProperties["management.server.port"])
 			if err != nil {
 				return err
 			}
-			managementBasePath := applicationProperties["management.endpoints.web.base-path"]
-
-			c := &podSpec.Spec.Containers[containerIdx]
-
-			// define probes
-			if c.StartupProbe == nil {
-				// requires k8s 1.16+
-				// TODO(scothis) add if k8s can handle it
-			}
-			if c.LivenessProbe == nil {
-				c.LivenessProbe = &corev1.Probe{
-					InitialDelaySeconds: 30,
-					PeriodSeconds:       5,
-					TimeoutSeconds:      5,
-				}
-			}
-			if c.LivenessProbe.Handler == (corev1.Handler{}) {
-				c.LivenessProbe.Handler = corev1.Handler{
-					HTTPGet: &corev1.HTTPGetAction{
-						Path: managementBasePath + "/info",
-						Port: intstr.FromInt(managementPort),
-					},
-				}
-			}
-			if c.ReadinessProbe == nil {
-				c.ReadinessProbe = &corev1.Probe{
-					InitialDelaySeconds: 5,
-					PeriodSeconds:       1,
-					TimeoutSeconds:      5,
-				}
-			}
-			if c.ReadinessProbe.Handler == (corev1.Handler{}) {
-				c.ReadinessProbe.Handler = corev1.Handler{
-					HTTPGet: &corev1.HTTPGetAction{
-						Path: managementBasePath + "/health",
-						Port: intstr.FromInt(managementPort),
-					},
-				}
-			}
-
-			return nil
-		},
-	},
-	&BasicOpinion{
-		// fallback if spring-boot-actuator-probes is not applied
-		Id: "spring-web-probes",
-		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
-			return !applied.Has("spring-boot-actuator-probes") && applied.Has("spring-web-port")
-		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
-			applicationProperties := SpringApplicationProperties(ctx)
-
-			if _, ok := applicationProperties["server.port"]; !ok {
-				// no port, so we can't provide probes
-				return nil
-			}
-
-			port, err := strconv.Atoi(applicationProperties["server.port"])
-			if err != nil {
-				return err
+			managementScheme := corev1.URISchemeHTTP
+			if applicationProperties["management.server.ssl.enabled"] == "true" {
+				managementScheme = corev1.URISchemeHTTPS
 			}
 
 			c := &podSpec.Spec.Containers[containerIdx]
 
 			// define probes
 			if c.StartupProbe == nil {
-				// requires k8s 1.16+
+				// currently alpha in k8s 1.16+
 				// TODO(scothis) add if k8s can handle it
 			}
 			if c.LivenessProbe == nil {
 				c.LivenessProbe = &corev1.Probe{
+					// increase default to give more time to start
+					// TODO(scothis) remove if a StartupProbe is defined
 					InitialDelaySeconds: 30,
-					PeriodSeconds:       5,
-					TimeoutSeconds:      5,
 				}
 			}
 			if c.LivenessProbe.Handler == (corev1.Handler{}) {
 				c.LivenessProbe.Handler = corev1.Handler{
-					TCPSocket: &corev1.TCPSocketAction{
-						Port: intstr.FromInt(port),
+					HTTPGet: &corev1.HTTPGetAction{
+						Path:   managementBasePath + "/health/liveness",
+						Port:   intstr.FromInt(managementPort),
+						Scheme: managementScheme,
 					},
 				}
 			}
 			if c.ReadinessProbe == nil {
-				c.ReadinessProbe = &corev1.Probe{
-					InitialDelaySeconds: 5,
-					PeriodSeconds:       1,
-					TimeoutSeconds:      5,
-				}
+				c.ReadinessProbe = &corev1.Probe{}
 			}
 			if c.ReadinessProbe.Handler == (corev1.Handler{}) {
 				c.ReadinessProbe.Handler = corev1.Handler{
-					TCPSocket: &corev1.TCPSocketAction{
-						Port: intstr.FromInt(port),
+					HTTPGet: &corev1.HTTPGetAction{
+						Path:   managementBasePath + "/health/readiness",
+						Port:   intstr.FromInt(managementPort),
+						Scheme: managementScheme,
 					},
 				}
 			}
@@ -310,16 +269,25 @@ type SpringBootBOMMetadataDependency struct {
 
 type springApplicationPropertiesKey struct{}
 
-func StashSpringApplicationProperties(ctx context.Context, props map[string]string) context.Context {
+type SpringApplicationProperties map[string]string
+
+func StashSpringApplicationProperties(ctx context.Context, props SpringApplicationProperties) context.Context {
 	return context.WithValue(ctx, springApplicationPropertiesKey{}, props)
 }
 
-func SpringApplicationProperties(ctx context.Context) map[string]string {
+func GetSpringApplicationProperties(ctx context.Context) SpringApplicationProperties {
 	value := ctx.Value(springApplicationPropertiesKey{})
-	if props, ok := value.(map[string]string); ok {
+	if props, ok := value.(SpringApplicationProperties); ok {
 		return props
 	}
 	return nil
+}
+
+func (props SpringApplicationProperties) Default(key, value string) string {
+	if _, ok := props[key]; !ok {
+		props[key] = value
+	}
+	return props[key]
 }
 
 type SpringBootServiceIntent struct {
