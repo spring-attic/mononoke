@@ -21,7 +21,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/go-containerregistry/pkg/authn"
+	"github.com/google/go-containerregistry/pkg/authn/k8schain"
 	"github.com/projectriff/system/pkg/controllers"
 	"github.com/projectriff/system/pkg/tracker"
 	"github.com/spring-cloud-incubator/mononoke/cnb"
@@ -73,6 +73,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	kc, err := k8schain.NewNoClient()
+	if err != nil {
+		setupLog.Error(err, "unable to create k8schain")
+		os.Exit(1)
+	}
+
 	if err = mononokecontrollers.SpringBootApplicationReconciler(
 		controllers.Config{
 			Client:    mgr.GetClient(),
@@ -82,7 +88,7 @@ func main() {
 			Log:       ctrl.Log.WithName("controllers").WithName("SpringBootApplication"),
 			Scheme:    mgr.GetScheme(),
 		},
-		cnb.Registry{Keychain: authn.DefaultKeychain}, //todo: keychain w/ configured secrets
+		cnb.Registry{Keychain: kc},
 	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "SpringBootApplication")
 		os.Exit(1)
