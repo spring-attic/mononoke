@@ -42,7 +42,7 @@ var SpringBoot = Opinions{
 			podSpec.Labels["apps.mononoke.local/framework"] = "spring-boot"
 			for _, d := range bootMetadata.Dependencies {
 				if d.Name == "spring-boot" {
-					podSpec.Labels["boot.spring.io/version"] = d.Version
+					podSpec.Annotations["boot.spring.io/version"] = d.Version
 					break
 				}
 			}
@@ -314,8 +314,8 @@ func (o *SpringBootServiceIntent) Apply(ctx context.Context, podSpec *corev1.Pod
 	bootMetadata := NewSpringBootBOMMetadata(metadata)
 	for _, d := range bootMetadata.Dependencies {
 		if o.Dependencies.Has(d.Name) {
-			podSpec.Labels[o.LabelName] = d.Name
-			podSpec.Labels[fmt.Sprintf("%s-version", o.LabelName)] = d.Version
+			podSpec.Labels[o.LabelName] = podSpec.Spec.Containers[containerIdx].Name
+			podSpec.Annotations[o.LabelName] = fmt.Sprintf("%s/%s", d.Name, d.Version)
 			break
 		}
 	}
