@@ -21,9 +21,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/Masterminds/semver"
 	"github.com/spring-cloud-incubator/mononoke/cnb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -53,7 +55,7 @@ var SpringBoot = Opinions{
 		Id: "spring-boot-graceful-shutdown",
 		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
-			return bootMetadata.HasDependency(
+			return bootMetadata.HasDependencyConstraint("spring-boot", ">= 2.3.0-0") && bootMetadata.HasDependency(
 				"spring-boot-starter-tomcat",
 				"spring-boot-starter-jetty",
 				"spring-boot-starter-reactor-netty",
@@ -131,7 +133,8 @@ var SpringBoot = Opinions{
 	&BasicOpinion{
 		Id: "spring-boot-actuator-probes",
 		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
-			return applied.Has("spring-boot-actuator")
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
+			return bootMetadata.HasDependencyConstraint("spring-boot-actuator", ">= 2.3.0-0")
 		},
 		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := GetSpringApplicationProperties(ctx)
@@ -251,6 +254,15 @@ type SpringBootBOMMetadata struct {
 	Dependencies []SpringBootBOMMetadataDependency `json:"dependencies"`
 }
 
+func (m *SpringBootBOMMetadata) Dependency(name string) *SpringBootBOMMetadataDependency {
+	for _, d := range m.Dependencies {
+		if d.Name == name {
+			return &d
+		}
+	}
+	return nil
+}
+
 func (m *SpringBootBOMMetadata) HasDependency(names ...string) bool {
 	n := sets.NewString(names...)
 	for _, d := range m.Dependencies {
@@ -259,6 +271,27 @@ func (m *SpringBootBOMMetadata) HasDependency(names ...string) bool {
 		}
 	}
 	return false
+}
+
+func (m *SpringBootBOMMetadata) HasDependencyConstraint(name, constraint string) bool {
+	d := m.Dependency(name)
+	if d == nil {
+		return false
+	}
+	v, err := semver.NewVersion(m.normalizeVersion(d.Version))
+	if err != nil {
+		return false
+	}
+	c, err := semver.NewConstraint(constraint)
+	if err != nil {
+		return false
+	}
+	return c.Check(v)
+}
+
+func (m *SpringBootBOMMetadata) normalizeVersion(version string) string {
+	r := regexp.MustCompile(`^([0-9]+\.[0-9]+\.[0-9]+)\.`)
+	return r.ReplaceAllString(version, "$1-")
 }
 
 type SpringBootBOMMetadataDependency struct {

@@ -15,7 +15,7 @@ Spring Boot Application Reconcilers for Kubernetes
 
 - `spring-boot-graceful-shutdown`
 
-  when image has one of `spring-boot-starter-tomcat`, `spring-boot-starter-jetty`, `spring-boot-starter-reactor-netty` or `spring-boot-starter-undertow` dependencies
+  when image has one of `spring-boot-starter-tomcat`, `spring-boot-starter-jetty`, `spring-boot-starter-reactor-netty` or `spring-boot-starter-undertow` dependencies and `spring-boot` version 2.3+
 
   - default pod termination grace period to 30 seconds (this is the k8s default)
   - default boot property `server.shutdown.grace-period` to 80% of the pod's termination grace period
@@ -39,7 +39,7 @@ Spring Boot Application Reconcilers for Kubernetes
 
 - `spring-boot-actuator-probes`
 
-  when `spring-boot-actuator` opinion was applied and boot property `management.health.probes.enabled` is not disabled
+  when image has `spring-boot-actuator` dependency version 2.3+ and boot property `management.health.probes.enabled` is not disabled
 
   - default liveness probe timings to initial delay of 30 seconds (only set if no liveness probe is defined)
   - default liveness probe handler to HTTP GET
