@@ -3,6 +3,7 @@ module github.com/spring-cloud-incubator/mononoke
 go 1.13
 
 require (
+	github.com/Masterminds/semver v1.5.0
 	github.com/google/go-cmp v0.4.0
 	github.com/google/go-containerregistry v0.0.0-20200304201134-fcc8ea80e26f
 	github.com/projectriff/system v0.5.0
