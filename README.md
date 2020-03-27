@@ -1,10 +1,10 @@
 # mononoke
 ![image](https://musicart.xboxlive.com/7/ac355100-0000-0000-0000-000000000002/504/image.jpg?w=800&h=600)
 
-Spring Boot Application Reconcilers for Kubernetes
+Experimental Spring Boot Application Reconcilers for Kubernetes
+
 
 ## Spring Boot opinions
-
 
 - `spring-boot`
   
@@ -50,6 +50,10 @@ Spring Boot Application Reconcilers for Kubernetes
     - path is `{boot:management.endpoints.web.base-path}/health/readiness`
     - port is the `management.server.port` boot property
     - scheme `http` by default, `https` when boot property `management.server.ssl.enabled` is true
+
+## Spring Boot service intents
+
+Service intents are an indicator that an application may want to connect to a particular type of service. Any given intent may be missing, required, optional or mutually exclusive with another service.
 
 - `service-intent-mysql`
 
