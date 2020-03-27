@@ -13,7 +13,7 @@ spec:
         image: scothis/petclinic
         resources:
           limits:
-            memory: 512Mi
+            memory: 1Gi
 ---
 apiVersion: v1
 kind: Service
