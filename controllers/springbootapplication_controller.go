@@ -90,12 +90,15 @@ func SpringBootApplicationApplyOpinions(c controllers.Config) controllers.SubRec
 		Sync: func(ctx context.Context, parent *mononokev1alpha1.SpringBootApplication) error {
 			ctx = opinions.StashSpringApplicationProperties(ctx, parent.Spec.ApplicationProperties)
 			imageMetadata := controllers.RetrieveValue(ctx, ImageMetadataStashKey).(cnb.BuildMetadata)
-			// TODO be smarter about which container to use
-			containerIdx := 0
+			containerName, containerIdx, err := FindTargetContainer(parent.Spec.TargetContainer, parent.Spec.Template)
+			if err != nil {
+				return err
+			}
 			applied, err := opinions.SpringBoot.Apply(ctx, parent.Spec.Template, containerIdx, imageMetadata)
 			if err != nil {
 				return err
 			}
+			parent.Status.TargetContainer = containerName
 			parent.Status.AppliedOpinions = applied
 
 			return nil
@@ -194,8 +197,8 @@ func SpringBootApplicationChildDeploymentReconciler(c controllers.Config) contro
 			template := *parent.Spec.Template.DeepCopy()
 			template.Labels = controllers.MergeMaps(template.Labels, labels)
 
-			// TODO(scothis) be smarter about which container to use
-			applicationContainer := &template.Spec.Containers[0]
+			_, containerIdx, _ := FindTargetContainer(parent.Spec.TargetContainer, parent.Spec.Template)
+			applicationContainer := &template.Spec.Containers[containerIdx]
 
 			imageMetadata := controllers.RetrieveValue(ctx, ImageMetadataStashKey).(cnb.BuildMetadata)
 			bootMetadata := opinions.NewSpringBootBOMMetadata(imageMetadata)

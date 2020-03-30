@@ -20,6 +20,7 @@ import (
 	"github.com/projectriff/system/pkg/apis"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var (
@@ -38,6 +39,11 @@ type SpringBootApplicationSpec struct {
 	// +optional
 	Template *corev1.PodTemplateSpec `json:"template,omitempty"`
 
+	// TargetContainer is name or index of the container to advise in the template
+	// Defaults to the first container
+	// +optional
+	TargetContainer *intstr.IntOrString `json:"targetContainer,omitempty"`
+
 	// ApplicationProperties to be included in the target application container
 	// +optional
 	ApplicationProperties map[string]string `json:"applicationProperties,omitempty"`
@@ -49,6 +55,10 @@ type SpringBootApplicationStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	apis.Status `json:",inline"`
+
+	// TargetContainer is the container targeted within the template
+	// +optional
+	TargetContainer string `json:"targetContainer,omitempty"`
 
 	// AppliedOpinions lists opinions applied to the application
 	AppliedOpinions []string `json:"appliedOpinions,omitempty"`

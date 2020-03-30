@@ -14,34 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package controllers
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
-var _ webhook.Defaulter = &SpringBootApplication{}
-
-func (r *SpringBootApplication) Default() {
-	r.Spec.Default()
-}
-
-func (s *SpringBootApplicationSpec) Default() {
-	if s.Template == nil {
-		s.Template = &corev1.PodTemplateSpec{}
-	}
-	if len(s.Template.Spec.Containers) == 0 {
-		s.Template.Spec.Containers = []corev1.Container{{}}
-	}
-
-	if s.TargetContainer == nil {
-		t := intstr.FromInt(0)
-		s.TargetContainer = &t
+func FindTargetContainer(target *intstr.IntOrString, template *corev1.PodTemplateSpec) (string, int, error) {
+	switch target.Type {
+	case intstr.Int:
+		idx := int(target.IntVal)
+		if l := len(template.Spec.Containers); idx < l {
+			c := template.Spec.Containers[idx]
+			return c.Name, idx, nil
+		}
+	case intstr.String:
+		name := target.StrVal
+		for i, c := range template.Spec.Containers {
+			if c.Name == name {
+				return name, i, nil
+			}
+		}
 	}
 
-	if s.ApplicationProperties == nil {
-		s.ApplicationProperties = map[string]string{}
-	}
+	return "", 0, fmt.Errorf("Unable to find container %q", target)
 }
