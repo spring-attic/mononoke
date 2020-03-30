@@ -52,10 +52,6 @@ type SpringBootApplicationStatus struct {
 
 	// AppliedOpinions lists opinions applied to the application
 	AppliedOpinions []string `json:"appliedOpinions,omitempty"`
-
-	// ApplicationPropertiesRef is the ConfigMap holding the application properties
-	// +optional
-	ApplicationPropertiesRef *corev1.LocalObjectReference `json:"applicationPropertiesRef,omitempty"`
 }
 
 // +kubebuilder:object:root=true

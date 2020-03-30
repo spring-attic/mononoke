@@ -4510,14 +4510,6 @@ spec:
         status:
           description: SpringBootApplicationStatus defines the observed state of SpringBootApplication
           properties:
-            applicationPropertiesRef:
-              description: ApplicationPropertiesRef is the ConfigMap holding the application
-                properties
-              properties:
-                name:
-                  description: 'Name of the referent. More info: https://kubernetes.'
-                  type: string
-              type: object
             appliedOpinions:
               description: AppliedOpinions lists opinions applied to the application
               items:
