@@ -56,6 +56,13 @@ spec:
               description: ApplicationProperties to be included in the target application
                 container
               type: object
+            targetContainer:
+              anyOf:
+              - type: integer
+              - type: string
+              description: TargetContainer is name or index of the container to advise
+                in the template Defaults to the first co
+              x-kubernetes-int-or-string: true
             template:
               description: Template pod
               properties:
@@ -4558,6 +4565,9 @@ spec:
                 was last processed by the controller.
               format: int64
               type: integer
+            targetContainer:
+              description: TargetContainer is the container targeted within the template
+              type: string
           type: object
       type: object
   version: v1alpha1
