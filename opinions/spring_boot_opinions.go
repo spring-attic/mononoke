@@ -134,9 +134,10 @@ var SpringBoot = Opinions{
 		Id: "spring-boot-actuator-probes",
 		ApplicableFunc: func(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
-			return bootMetadata.HasDependencyConstraint("spring-boot-actuator", ">= 2.3.0-0")
+			return bootMetadata.HasDependency("spring-boot-actuator")
 		},
 		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
+			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			applicationProperties := GetSpringApplicationProperties(ctx)
 
 			if v := applicationProperties.Default("management.health.probes.enabled", "true"); v != "true" {
@@ -152,6 +153,15 @@ var SpringBoot = Opinions{
 			managementScheme := corev1.URISchemeHTTP
 			if applicationProperties["management.server.ssl.enabled"] == "true" {
 				managementScheme = corev1.URISchemeHTTPS
+			}
+
+			var livenessEndpoint, readinessEndpoint string
+			if bootMetadata.HasDependencyConstraint("spring-boot-actuator", ">= 2.3.0-0") {
+				livenessEndpoint = "/health/liveness"
+				readinessEndpoint = "/health/readiness"
+			} else {
+				livenessEndpoint = "/info"
+				readinessEndpoint = "/info"
 			}
 
 			c := &podSpec.Spec.Containers[containerIdx]
@@ -171,7 +181,7 @@ var SpringBoot = Opinions{
 			if c.LivenessProbe.Handler == (corev1.Handler{}) {
 				c.LivenessProbe.Handler = corev1.Handler{
 					HTTPGet: &corev1.HTTPGetAction{
-						Path:   managementBasePath + "/health/liveness",
+						Path:   managementBasePath + livenessEndpoint,
 						Port:   intstr.FromInt(managementPort),
 						Scheme: managementScheme,
 					},
@@ -183,7 +193,7 @@ var SpringBoot = Opinions{
 			if c.ReadinessProbe.Handler == (corev1.Handler{}) {
 				c.ReadinessProbe.Handler = corev1.Handler{
 					HTTPGet: &corev1.HTTPGetAction{
-						Path:   managementBasePath + "/health/readiness",
+						Path:   managementBasePath + readinessEndpoint,
 						Port:   intstr.FromInt(managementPort),
 						Scheme: managementScheme,
 					},

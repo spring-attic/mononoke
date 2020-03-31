@@ -39,8 +39,9 @@ Experimental Spring Boot Application Reconcilers for Kubernetes
 
 - `spring-boot-actuator-probes`
 
-  when image has `spring-boot-actuator` dependency version 2.3+ and boot property `management.health.probes.enabled` is not disabled
+  when image has `spring-boot-actuator` dependency version 2.3+
 
+  - if boot property `management.health.probes.enabled` is disabled, skip remainder of opinion
   - default liveness probe timings to initial delay of 30 seconds (only set if no liveness probe is defined)
   - default liveness probe handler to HTTP GET
     - path is `{boot:management.endpoints.web.base-path}/health/liveness`
@@ -50,6 +51,7 @@ Experimental Spring Boot Application Reconcilers for Kubernetes
     - path is `{boot:management.endpoints.web.base-path}/health/readiness`
     - port is the `management.server.port` boot property
     - scheme `http` by default, `https` when boot property `management.server.ssl.enabled` is true
+  - NOTE: for boot versions prior to 2.3, the path is `{boot:management.endpoints.web.base-path}/info` for both probes
 
 ## Spring Boot service intents
 
