@@ -39,12 +39,12 @@ var SpringBoot = Opinions{
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-boot")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, target Resource, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
-			podSpec.Labels["apps.mononoke.local/framework"] = "spring-boot"
+			setLabel(target, "apps.mononoke.local/framework", "spring-boot")
 			for _, d := range bootMetadata.Dependencies {
 				if d.Name == "spring-boot" {
-					podSpec.Annotations["boot.spring.io/version"] = d.Version
+					setAnnotation(target, "boot.spring.io/version", d.Version)
 					break
 				}
 			}
@@ -62,17 +62,17 @@ var SpringBoot = Opinions{
 				"spring-boot-starter-undertow",
 			)
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, target Resource, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := GetSpringApplicationProperties(ctx)
 			if _, ok := applicationProperties["server.shutdown.grace-period"]; ok {
 				// boot grace period is already defined, skipping
 				return nil
 			}
 			var k8sGracePeriodSeconds int64 = 30 // default k8s grace period is 30 seconds
-			if podSpec.Spec.TerminationGracePeriodSeconds != nil {
-				k8sGracePeriodSeconds = *podSpec.Spec.TerminationGracePeriodSeconds
+			if target.PodTemplate().Spec.TerminationGracePeriodSeconds != nil {
+				k8sGracePeriodSeconds = *target.PodTemplate().Spec.TerminationGracePeriodSeconds
 			}
-			podSpec.Spec.TerminationGracePeriodSeconds = &k8sGracePeriodSeconds
+			target.PodTemplate().Spec.TerminationGracePeriodSeconds = &k8sGracePeriodSeconds
 			// allocate 80% of the k8s grace period to boot
 			bootGracePeriodSeconds := int(math.Floor(0.8 * float64(k8sGracePeriodSeconds)))
 			applicationProperties["server.shutdown.grace-period"] = fmt.Sprintf("%ds", bootGracePeriodSeconds)
@@ -85,7 +85,7 @@ var SpringBoot = Opinions{
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-web")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, target Resource, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := GetSpringApplicationProperties(ctx)
 
 			serverPort := applicationProperties.Default("server.port", "8080")
@@ -94,9 +94,9 @@ var SpringBoot = Opinions{
 				return err
 			}
 
-			c := &podSpec.Spec.Containers[containerIdx]
+			c := &target.PodTemplate().Spec.Containers[containerIdx]
 
-			if name, cp := findContainerPort(podSpec.Spec, int32(port)); cp == nil {
+			if name, cp := findContainerPort(target.PodTemplate().Spec, int32(port)); cp == nil {
 				c.Ports = append(c.Ports, corev1.ContainerPort{
 					ContainerPort: int32(port),
 					Protocol:      corev1.ProtocolTCP,
@@ -115,7 +115,7 @@ var SpringBoot = Opinions{
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-boot-actuator")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, target Resource, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			applicationProperties := GetSpringApplicationProperties(ctx)
 
 			managementPort := applicationProperties.Default("management.server.port", applicationProperties["server.port"])
@@ -125,7 +125,7 @@ var SpringBoot = Opinions{
 				managementScheme = corev1.URISchemeHTTPS
 			}
 
-			podSpec.Annotations["boot.spring.io/actuator"] = fmt.Sprintf("%s://:%s%s", strings.ToLower(string(managementScheme)), managementPort, managementBasePath)
+			setAnnotation(target, "boot.spring.io/actuator", fmt.Sprintf("%s://:%s%s", strings.ToLower(string(managementScheme)), managementPort, managementBasePath))
 
 			return nil
 		},
@@ -136,7 +136,7 @@ var SpringBoot = Opinions{
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			return bootMetadata.HasDependency("spring-boot-actuator")
 		},
-		ApplyFunc: func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) error {
+		ApplyFunc: func(ctx context.Context, target Resource, containerIdx int, imageMetadata cnb.BuildMetadata) error {
 			bootMetadata := NewSpringBootBOMMetadata(imageMetadata)
 			applicationProperties := GetSpringApplicationProperties(ctx)
 
@@ -164,7 +164,7 @@ var SpringBoot = Opinions{
 				readinessEndpoint = "/info"
 			}
 
-			c := &podSpec.Spec.Containers[containerIdx]
+			c := &target.PodTemplate().Spec.Containers[containerIdx]
 
 			// define probes
 			if c.StartupProbe == nil {
@@ -353,12 +353,12 @@ func (o *SpringBootServiceIntent) Applicable(applied AppliedOpinions, metadata c
 	return false
 }
 
-func (o *SpringBootServiceIntent) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, metadata cnb.BuildMetadata) error {
+func (o *SpringBootServiceIntent) Apply(ctx context.Context, target Resource, containerIdx int, metadata cnb.BuildMetadata) error {
 	bootMetadata := NewSpringBootBOMMetadata(metadata)
 	for _, d := range bootMetadata.Dependencies {
 		if o.Dependencies.Has(d.Name) {
-			podSpec.Labels[o.LabelName] = podSpec.Spec.Containers[containerIdx].Name
-			podSpec.Annotations[o.LabelName] = fmt.Sprintf("%s/%s", d.Name, d.Version)
+			setLabel(target, o.LabelName, target.PodTemplate().Spec.Containers[containerIdx].Name)
+			setAnnotation(target, o.LabelName, fmt.Sprintf("%s/%s", d.Name, d.Version))
 			break
 		}
 	}
