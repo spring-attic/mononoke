@@ -47,12 +47,12 @@ metadata:
 type: Opaque
 stringData:
   hostname: mysql
-  jdbcUrl: jdbc:mysql://mysql:3306/petclinic
-  name: petclinic
-  password: petclinic
+  jdbcUrl: jdbc:mysql://mysql:3306/db?user=cat&password=notcat
+  name: db
+  password: notcat
   port: "3306"
-  uri: mysql://petclinic:petclinic@mysql:3306/petclinic?reconnect=true
-  username: petclinic
+  uri: mysql://cat:notcat@mysql:3306/db?reconnect=true
+  username: cat
 
 ---
 apiVersion: v1
