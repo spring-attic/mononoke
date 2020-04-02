@@ -94,7 +94,7 @@ func SpringBootApplicationApplyOpinions(c controllers.Config) controllers.SubRec
 			if err != nil {
 				return err
 			}
-			applied, err := opinions.SpringBoot.Apply(ctx, parent.Spec.Template, containerIdx, imageMetadata)
+			applied, err := opinions.SpringBoot.Apply(ctx, parent, containerIdx, imageMetadata)
 			if err != nil {
 				return err
 			}

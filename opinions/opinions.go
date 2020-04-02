@@ -26,23 +26,17 @@ import (
 type Opinion interface {
 	GetId() string
 	Applicable(applied AppliedOpinions, imageMetadata cnb.BuildMetadata) bool
-	Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, metadata cnb.BuildMetadata) error
+	Apply(ctx context.Context, target Resource, containerIdx int, metadata cnb.BuildMetadata) error
 }
 
 type Opinions []Opinion
 
-func (os Opinions) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, imageMetadata cnb.BuildMetadata) ([]string, error) {
+func (os Opinions) Apply(ctx context.Context, target Resource, containerIdx int, imageMetadata cnb.BuildMetadata) ([]string, error) {
 	applied := AppliedOpinions{}
-	if podSpec.Annotations == nil {
-		podSpec.Annotations = map[string]string{}
-	}
-	if podSpec.Labels == nil {
-		podSpec.Labels = map[string]string{}
-	}
 	for _, o := range os {
 		if o.Applicable(applied, imageMetadata) {
 			applied = append(applied, o.GetId())
-			if err := o.Apply(ctx, podSpec, containerIdx, imageMetadata); err != nil {
+			if err := o.Apply(ctx, target, containerIdx, imageMetadata); err != nil {
 				return nil, err
 			}
 		}
@@ -64,7 +58,7 @@ func (os AppliedOpinions) Has(id string) bool {
 type BasicOpinion struct {
 	Id             string
 	ApplicableFunc func(applied AppliedOpinions, metadata cnb.BuildMetadata) bool
-	ApplyFunc      func(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, metadata cnb.BuildMetadata) error
+	ApplyFunc      func(ctx context.Context, target Resource, containerIdx int, metadata cnb.BuildMetadata) error
 }
 
 func (o *BasicOpinion) GetId() string {
@@ -78,8 +72,8 @@ func (o *BasicOpinion) Applicable(applied AppliedOpinions, metadata cnb.BuildMet
 	return o.ApplicableFunc(applied, metadata)
 }
 
-func (o *BasicOpinion) Apply(ctx context.Context, podSpec *corev1.PodTemplateSpec, containerIdx int, metadata cnb.BuildMetadata) error {
-	return o.ApplyFunc(ctx, podSpec, containerIdx, metadata)
+func (o *BasicOpinion) Apply(ctx context.Context, target Resource, containerIdx int, metadata cnb.BuildMetadata) error {
+	return o.ApplyFunc(ctx, target, containerIdx, metadata)
 }
 
 func findContainerPort(ps corev1.PodSpec, port int32) (string, *corev1.ContainerPort) {
