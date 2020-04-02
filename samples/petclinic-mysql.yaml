@@ -11,6 +11,10 @@ spec:
       matchExpressions:
       - key: services.mononoke.local/mysql
         operator: Exists
+      - key: apps.mononoke.local/spring-boot-application
+        operator: In
+        values:
+        - petclinic
   provider:
     apiVersion: bindings.projectriff.io/v1alpha1
     kind: BindableService
