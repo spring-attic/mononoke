@@ -46,10 +46,50 @@ metadata:
   name: mysql-binding
 type: Opaque
 stringData:
-  hostname: localhost
-  jdbcUrl: jdbc:mysql://localhost:3306/default?user=root&password=
+  hostname: mysql
+  jdbcUrl: jdbc:mysql://mysql:3306/default?user=root&password=root
   name: default
-  password: ""
+  password: root
   port: "3306"
-  uri: mysql://root:@localhost:3306/default?reconnect=true
+  uri: mysql://root:root@mysql:3306/default?reconnect=true
   username: root
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-binding
+              key: password
+        ports:
+        - containerPort: 3306
+          name: mysql
