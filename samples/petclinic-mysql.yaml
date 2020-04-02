@@ -46,10 +46,62 @@ metadata:
   name: mysql-binding
 type: Opaque
 stringData:
-  hostname: localhost
-  jdbcUrl: jdbc:mysql://localhost:3306/default?user=root&password=
-  name: default
-  password: ""
+  hostname: mysql
+  jdbcUrl: jdbc:mysql://mysql:3306/petclinic
+  name: petclinic
+  password: petclinic
   port: "3306"
-  uri: mysql://root:@localhost:3306/default?reconnect=true
-  username: root
+  uri: mysql://petclinic:petclinic@mysql:3306/petclinic?reconnect=true
+  username: petclinic
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-binding
+              key: username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-binding
+              key: password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mysql-binding
+              key: name
+        - name: MYSQL_ROOT_PASSWORD
+          value: root
+        ports:
+        - containerPort: 3306
+          name: mysql
