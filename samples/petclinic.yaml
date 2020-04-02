@@ -4,6 +4,8 @@ kind: SpringBootApplication
 metadata:
   name: petclinic
 spec:
+  applicationProperties:
+    spring.datasource.initialization-mode: always
   template:
     metadata:
       labels:
