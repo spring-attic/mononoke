@@ -24,4 +24,4 @@ spec:
   source:
     git:
       revision: sb-2.3.x
-      url: https://github.com/scothis/spring-petclinic
+      url: https://github.com/spring-projects/spring-petclinic
