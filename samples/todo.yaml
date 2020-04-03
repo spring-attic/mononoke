@@ -1,0 +1,20 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo
+  labels:
+    apps.mononoke.local/framework: expressjs
+    app: todo
+spec:
+  selector:
+    matchLabels:
+      app: todo
+  template:
+    metadata:
+      labels:
+        app: todo
+    spec:
+      containers:
+      - image: ekcasey/node-js-getting-started
+        name: application
