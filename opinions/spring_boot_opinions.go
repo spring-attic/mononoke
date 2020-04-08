@@ -242,6 +242,20 @@ var SpringBoot = Opinions{
 			"jedis",
 		),
 	},
+	&SpringBootServiceIntent{
+		Id:        "service-intent-kafka",
+		LabelName: "services.mononoke.local/kafka",
+		Dependencies: sets.NewString(
+			"kafka-clients",
+		),
+	},
+	&SpringBootServiceIntent{
+		Id:        "service-intent-kafka-streams",
+		LabelName: "services.mononoke.local/kafka-streams",
+		Dependencies: sets.NewString(
+			"kafka-streams",
+		),
+	},
 
 	// TODO add a whole lot more opinions
 }

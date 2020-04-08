@@ -91,3 +91,17 @@ Service intents are an indicator that an application may want to connect to a pa
   
   - add label `services.mononoke.local/redis` with the container's name
   - add annotation `services.mononoke.local/redis` with the driver dependency name and version
+
+- `service-intent-kafka`
+
+  when image has `kafka-clients` dependency
+  
+  - add label `services.mononoke.local/kafka` with the container's name
+  - add annotation `services.mononoke.local/kafka` with the driver dependency name and version
+
+- `service-intent-kafka-streams`
+
+  when image has `kafka-streams` dependency
+  
+  - add label `services.mononoke.local/kafka-streams` with the container's name
+  - add annotation `services.mononoke.local/kafka-streams` with the driver dependency name and version
